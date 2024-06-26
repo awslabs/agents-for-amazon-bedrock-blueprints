@@ -1,0 +1,47 @@
+{
+  "name": "agents-for-bedrock-blueprints-construct",
+  "version": "0.1.0",
+  "bin": {
+    "agents-for-bedrock-blueprints-construct": "bin/agents-for-bedrock-blueprints-construct.js"
+  },
+  "scripts": {
+    "build": "tsc --outdir dist",
+    "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint-fix": "npx eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-bedrock-agent": "^3.567.0",
+    "@aws-sdk/client-lambda": "^3.549.0",
+    "@eslint/js": "^9.3.0",
+    "@types/archiver": "^6.0.2",
+    "@types/aws-lambda": "^8.10.137",
+    "@types/eslint__js": "^8.42.3",
+    "@types/jest": "^27.5.2",
+    "@types/node": "10.17.27",
+    "@types/prettier": "2.6.0",
+    "@types/uuid": "^9.0.8",
+    "aws-cdk": "2.140.0",
+    "esbuild": "^0.21.3",
+    "eslint": "^8.57.0",
+    "jest": "^27.5.1",
+    "ts-jest": "^27.1.4",
+    "ts-node": "^10.9.1",
+    "typescript": "~3.9.7",
+    "typescript-eslint": "^7.11.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.549.0",
+    "@aws-sdk/credential-providers": "^3.549.0",
+    "@opensearch-project/opensearch": "^2.6.0",
+    "archiver": "^7.0.1",
+    "aws-cdk-lib": "^2.140.0",
+    "constructs": "^10.0.0",
+    "jszip-sync": "^3.2.1-sync",
+    "source-map-support": "^0.5.21",
+    "ts-retry": "^4.2.5",
+    "uuid": "^9.0.1"
+  }
+}
