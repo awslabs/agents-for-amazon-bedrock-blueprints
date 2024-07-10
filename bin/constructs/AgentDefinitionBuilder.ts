@@ -38,9 +38,10 @@ export const PromptConfig_Override = "OVERRIDDEN";
 export const PromptConfig_Default = "DEFAULT";
 
 export class AgentDefinitionBuilder extends Construct {
-    agentDefinition: bedrock.CfnAgentProps;
-    overrideLambda: string;
-    promptConfigurations: bedrock.CfnAgent.PromptConfigurationProperty[] = [];
+    private agentDefinition: bedrock.CfnAgentProps;
+    private overrideLambda: string;
+    private promptConfigurations: bedrock.CfnAgent.PromptConfigurationProperty[] = [];
+
     constructor(scope: Construct, id: string, props: AgentDefinitionProps) {
         super(scope, id);
         this.agentDefinition = {

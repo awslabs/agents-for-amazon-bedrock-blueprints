@@ -1,9 +1,7 @@
-import { StackProps } from "aws-cdk-lib";
+import { StackProps, aws_bedrock as bedrock } from 'aws-cdk-lib';
+import { Effect, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import { v4 as uuidv4 } from 'uuid';
-import { aws_bedrock as bedrock } from 'aws-cdk-lib';
-import { Effect, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
-
 
 export interface BedrockAgentBlueprintsConstructProps extends StackProps {
     agentDefinition: bedrock.CfnAgentProps;

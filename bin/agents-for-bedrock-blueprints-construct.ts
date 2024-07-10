@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-import 'source-map-support/register';
-import * as cdk from 'aws-cdk-lib';
+import { App } from 'aws-cdk-lib';
 import { DemoTemplateStack } from '../lib/demo_template/DemoTemplate';
 
 const permissionObject = {
@@ -14,5 +13,5 @@ const permissionObject = {
     env: { account: '', region: 'us-east-1' },
 };
 
-const app = new cdk.App();
-new DemoTemplateStack(app, 'AmazonBedrockAgentBlueprintsStack', permissionObject);
+const app = new App();
+new DemoTemplateStack(app, 'AmazonBedrockAgentBlueprintsStack2', permissionObject);

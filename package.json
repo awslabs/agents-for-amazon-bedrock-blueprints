@@ -13,8 +13,6 @@
     "cdk": "cdk"
   },
   "devDependencies": {
-    "@aws-sdk/client-bedrock-agent": "^3.567.0",
-    "@aws-sdk/client-lambda": "^3.549.0",
     "@eslint/js": "^9.3.0",
     "@types/archiver": "^6.0.2",
     "@types/aws-lambda": "^8.10.137",
@@ -32,9 +30,11 @@
     "typescript": "~3.9.7",
     "typescript-eslint": "^7.11.0"
   },
-  "dependencies": {
+  "peerDependencies": {
     "@aws-sdk/client-secrets-manager": "^3.549.0",
     "@aws-sdk/credential-providers": "^3.549.0",
+    "@aws-sdk/client-bedrock-agent": "^3.567.0",
+    "@aws-sdk/client-lambda": "^3.549.0",
     "@opensearch-project/opensearch": "^2.6.0",
     "archiver": "^7.0.1",
     "aws-cdk-lib": "^2.140.0",

@@ -9,10 +9,8 @@ export class DemoTemplateStack extends cdk.Stack {
         super(scope, id, props);
 
         const agentDef = new AgentDefinitionBuilder(this, 'NewAgentDef', {})
-            .withAgentName('yolo')
-            .withInstruction('nice new fun agent to do great things in code')
-            .withAgentResourceRoleArn('ahjdfklajh')
-            .withPostProcessingPrompt(aws_yml_converter)
+            .withAgentName('FunnyAgent')
+            .withInstruction('You are a funny and intellectual agent that responds to all queries with a joke at the end.')
             .withUserInput()
             .build();
 
