@@ -1,0 +1,16 @@
+*.js
+!jest.config.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# output directories for build artifacts
+dist
+package-lock.json
+yarn.lock
+
+# macOS extraneous file
+.DS_STORE
