@@ -17,6 +17,7 @@ export interface BedrockAgentBlueprintsConstructProps extends StackProps {
     agentDefinition: bedrock.CfnAgentProps;
     actionGroups?: AgentActionGroup[];
     knowledgeBases?: AgentKnowledgeBase[];
+    guardrail?: bedrock.CfnGuardrail;
 }
 
 export class BedrockAgentBlueprintsConstruct extends Construct {
@@ -35,6 +36,7 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
 
         this.associateActionGroupInfo(props.actionGroups);
         this.associateKnowledgeBaseInfo(props.knowledgeBases);
+        this.associateGuardrailInfo(props.guardrail);
         this.createBedrockAgent();
 
         // Allow bedrock agent to invoke the functions
@@ -353,6 +355,28 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
         return {
             s3BucketName: deploymentInfo.deployedBucket.bucketName,
             s3ObjectKey: Fn.select(0, deploymentInfo.objectKeys)
+        };
+    }
+
+    /** Guardrails functions */
+
+    /**
+     * Associates the Guardrail information with the agent definition.
+     *
+     * @param guardrail - The Guardrail resource object.
+     *
+     * If a Guardrail resource is provided, the function updates the `agentDefinition`
+     * object by adding a `guardrailConfiguration` property.
+     */
+    private associateGuardrailInfo(guardrail: bedrock.CfnGuardrail | undefined) {
+        if (!guardrail) return;
+
+        this.agentDefinition = {
+            ...this.agentDefinition,
+            guardrailConfiguration: {
+                guardrailIdentifier: guardrail.attrGuardrailId,
+                guardrailVersion: guardrail.attrVersion,
+            }
         };
     }
 }
