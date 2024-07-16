@@ -10,10 +10,13 @@ import { FileBufferMap, writeFilesToDir } from "./constructs/utilities/utils";
 import { join } from 'path';
 import { mkdtempSync } from 'fs';
 import { tmpdir } from 'os';
+import { AgentKnowledgeBase } from './constructs/AgentKnowledgeBase';
+import { MAX_KB_SUPPORTED } from './constructs/utilities/constants';
 
 export interface BedrockAgentBlueprintsConstructProps extends StackProps {
     agentDefinition: bedrock.CfnAgentProps;
     actionGroups?: AgentActionGroup[];
+    knowledgeBases?: AgentKnowledgeBase[];
 }
 
 export class BedrockAgentBlueprintsConstruct extends Construct {
@@ -26,11 +29,12 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
         this.agentDefinition = props.agentDefinition;
 
         // Check if we need to setup an S3 bucket to store assets.
-        if (this.checkActionsRequireArtifacts(props.actionGroups)) {
+        if (this.checkActionsRequireArtifacts(props.actionGroups) || this.checkKBSetupRequired(props.knowledgeBases)) {
             this.assetManagementBucket = this.setupS3Bucket();
         }
 
         this.associateActionGroupInfo(props.actionGroups);
+        this.associateKnowledgeBaseInfo(props.knowledgeBases);
         this.createBedrockAgent();
 
         // Allow bedrock agent to invoke the functions
@@ -88,6 +92,85 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
 
         return bedrockServiceRole;
 
+    }
+
+    /** KnowledgeBase functions */
+
+    private checkKBSetupRequired(knowledgeBases: AgentKnowledgeBase[] | undefined): boolean {
+        if (knowledgeBases) {
+            return !(this.node.tryGetContext("skipKBCreation") === "true");
+        }
+        return false;
+    }
+
+    private validateKB(kbs: AgentKnowledgeBase[] | undefined) {
+        //Validate if we can support the amount of KBs attached.
+        if (kbs && kbs.length > MAX_KB_SUPPORTED) throw new Error(`Maximum supported KnowledgeBases: ${MAX_KB_SUPPORTED}`);
+
+        // ...Add other validation here if needed.
+    }
+
+    /**
+     * Adds a policy statement to the agent service role, granting the necessary permissions
+     * to retrieve and generate content from the specified Bedrock knowledge base.
+     *
+     * @param knowledgeBaseId - The ID of the Bedrock knowledge base to grant access to.
+     */
+    private addKBInvocationAccess(knowledgeBaseId: string) {
+        const accountId = process.env.CDK_DEFAULT_ACCOUNT!;
+        const region = process.env.CDK_DEFAULT_REGION!;
+
+        // Attach permission to read from KB
+        this.agentServiceRole?.addToPolicy(
+            new PolicyStatement({
+                sid: 'QueryAssociatedKnowledgeBases',
+                effect: Effect.ALLOW,
+                actions: ['bedrock:Retrieve', 'bedrock:RetrieveAndGenerate'],
+                resources: [`arn:aws:bedrock:${region}:${accountId}:knowledge-base/${knowledgeBaseId}`],
+            })
+        );
+    }
+
+    /**
+     * Associates the provided knowledge bases with the agent definition.
+     *
+     * For each knowledge base, it performs the following steps:
+     *
+     * 1. Checks if the `assetFiles` property is defined. If not, it throws an error.
+     * 2. Calls the `deployAssetsToBucket` method to upload the asset files to S3.
+     * 3. Calls the `createAndSyncDataSource` method on the knowledge base to create 
+     * and sync the data source.
+     * 4. Creates an `AgentKnowledgeBaseProperty` object with the knowledge base ID 
+     * and description, and adds it to the `kbDefinitions` array.
+     * 5. Calls the `addKBInvocationAccess` method to grant the agent the necessary 
+     * permissions to retrieve and generate content from the knowledge base.
+     *
+     * @param knowledgeBases - An array of `AgentKnowledgeBase` objects to associate with the agent definition
+     */
+    private associateKnowledgeBaseInfo(knowledgeBases: AgentKnowledgeBase[] | undefined) {
+        // Early return if kb is falsy (undefined or null) or user opted out for KB creation.
+        if (!this.checkKBSetupRequired(knowledgeBases)) return;
+        this.validateKB(knowledgeBases);
+        let kbDefinitions: bedrock.CfnAgent.AgentKnowledgeBaseProperty[] = [];
+
+        knowledgeBases?.forEach(kb => {
+            if (!kb.assetFiles) throw new Error(`No asset files were provided for KnowledgeBase: ${kb.knowledgeBaseName}`);
+
+            const deploymentInfo = this.deployAssetsToBucket(kb.assetFiles, kb.knowledgeBaseName);
+            kb.createAndSyncDataSource(deploymentInfo.deployedBucket.bucketArn, kb.knowledgeBaseName);
+            kbDefinitions.push({
+                knowledgeBaseId: kb.knowledgeBase.attrKnowledgeBaseId,
+                description: kb.agentInstruction
+            });
+
+            this.addKBInvocationAccess(kb.knowledgeBase.attrKnowledgeBaseId);
+        });
+
+        // Append the knowledgeBases to the agent definition.
+        this.agentDefinition = {
+            ...this.agentDefinition,
+            knowledgeBases: kbDefinitions
+        };
     }
 
     /** Action group functions */

@@ -24,6 +24,7 @@
     "aws-cdk": "2.140.0",
     "esbuild": "^0.21.3",
     "eslint": "^8.57.0",
+    "eslint-plugin-no-relative-import-paths": "^1.5.5",
     "jest": "^27.5.1",
     "ts-jest": "^27.1.4",
     "ts-node": "^10.9.1",
