@@ -8,6 +8,7 @@ import { inlineCode, inlineSchema } from './utils/constants';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { BedrockAgentBlueprintsConstruct } from '../bin/BedrockAgentBlueprintsConstruct';
 import { CfnAgentProps } from 'aws-cdk-lib/aws-bedrock';
+import { BedrockGuardrailsBuilder } from '../bin/constructs/BedrockGuardrailsBuilder';
 
 describe('BedrockAgentBlueprintsConstruct', () => {
     let app: App;
@@ -134,6 +135,31 @@ describe('BedrockAgentBlueprintsConstruct', () => {
                     },
                 },
             ],
+        });
+    });
+
+    test('associates guardrails when provided', () => {
+        const guardrail = new BedrockGuardrailsBuilder(stack, 'TestGuardrail', {
+            name: 'TestGuardrail',
+            description: 'Test guardrail with all configurations',
+            generateKmsKey: true,
+        }).build();
+        
+        new BedrockAgentBlueprintsConstruct(stack, 'TestConstruct', { 
+            agentDefinition: agentDef,
+            guardrail: guardrail,
+        });
+        const template = Template.fromStack(stack);
+
+        template.resourceCountIs('AWS::KMS::Key', 1);
+        template.resourceCountIs('AWS::Bedrock::Agent', 1);
+        template.hasResourceProperties('AWS::Bedrock::Agent', {
+            AgentName: 'NewFriendlyAgent',
+            FoundationModel: 'anthropic.claude-v2',
+            GuardrailConfiguration: {
+                GuardrailIdentifier:{ 'Fn::GetAtt': [ Match.stringLikeRegexp(`TestGuardrail.*`), 'GuardrailId' ] },
+                GuardrailVersion: { 'Fn::GetAtt': [ Match.stringLikeRegexp(`TestGuardrail.*`), 'Version' ] },
+            }
         });
     });
 });
