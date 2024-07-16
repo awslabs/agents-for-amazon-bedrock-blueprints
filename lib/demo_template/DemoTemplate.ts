@@ -1,9 +1,12 @@
 import * as cdk from 'aws-cdk-lib';
+import { readFileSync } from 'fs';
+import { resolve } from "path";
 import { Construct } from 'constructs';
 import { BedrockAgentBlueprintsConstruct } from '../../bin/BedrockAgentBlueprintsConstruct';
 import { AgentDefinitionBuilder } from '../../bin/constructs/AgentDefinitionBuilder';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AgentActionGroup } from '../../bin/constructs/AgentActionGroup';
+import { AgentKnowledgeBase } from '../../bin/constructs/AgentKnowledgeBase';
 
 export class DemoTemplateStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -86,9 +89,18 @@ export class DemoTemplateStack extends cdk.Stack {
             },
         });
 
+        const fileBuffer: Buffer = readFileSync(resolve(__dirname, 'assets', 'dummy.csv'));
+
+        const knowledgeBase = new AgentKnowledgeBase(this, 'NewKB', {
+            kbName: 'DummyKB',
+            agentInstruction: 'Dummy KB for dummy agent',
+            assetFiles: [fileBuffer]
+        });
+
         new BedrockAgentBlueprintsConstruct(this, 'AmazonBedrockAgentBlueprintsStack', {
             agentDefinition: agentDef,
             actionGroups: [action],
+            knowledgeBases: [knowledgeBase],
         });
     }
 }
