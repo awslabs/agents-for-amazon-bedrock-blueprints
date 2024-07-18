@@ -51,7 +51,7 @@ export class AgentDefinitionBuilder extends Construct {
             agentResourceRoleArn: props.agentResourceRoleArn,
             customerEncryptionKeyArn: props.customerEncryptionKeyArn,
             foundationModel: props.foundationModel ?? "anthropic.claude-v2",
-            idleSessionTtlInSeconds: props.idleSessionTtlInSeconds ?? 123,
+            idleSessionTtlInSeconds: props.idleSessionTtlInSeconds ?? 1200,
             tags: props.tags ?? {},
             testAliasTags: props.testAliasTags ?? {},
         };
