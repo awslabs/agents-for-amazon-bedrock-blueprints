@@ -2,13 +2,13 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
-import { AgentDefinitionBuilder } from '../bin/constructs/AgentDefinitionBuilder';
-import { AgentActionGroup } from '../bin/constructs/AgentActionGroup';
+import { AgentDefinitionBuilder } from '../constructs/AgentDefinitionBuilder';
+import { AgentActionGroup } from '../constructs/src/action-group-configuration-construct';
 import { inlineCode, inlineSchema } from './utils/constants';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { BedrockAgentBlueprintsConstruct } from '../bin/BedrockAgentBlueprintsConstruct';
+import { BedrockAgentBlueprintsConstruct } from '../constructs/src/main-agent-blueprint-construct';
 import { CfnAgentProps } from 'aws-cdk-lib/aws-bedrock';
-import { BedrockGuardrailsBuilder } from '../bin/constructs/BedrockGuardrailsBuilder';
+import { BedrockGuardrailsBuilder } from '../constructs/BedrockGuardrailsBuilder';
 
 describe('BedrockAgentBlueprintsConstruct', () => {
     let app: App;

@@ -2,11 +2,11 @@ import * as cdk from 'aws-cdk-lib';
 import { readFileSync } from 'fs';
 import { resolve } from "path";
 import { Construct } from 'constructs';
-import { BedrockAgentBlueprintsConstruct } from '../../bin/BedrockAgentBlueprintsConstruct';
-import { AgentDefinitionBuilder } from '../../bin/constructs/AgentDefinitionBuilder';
+import { BedrockAgentBlueprintsConstruct } from '../../constructs/src/main-agent-blueprint-construct';
+import { AgentDefinitionBuilder } from '../../constructs/AgentDefinitionBuilder';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { AgentActionGroup } from '../../bin/constructs/AgentActionGroup';
-import { AgentKnowledgeBase } from '../../bin/constructs/AgentKnowledgeBase';
+import { AgentActionGroup } from '../../constructs/src/action-group-configuration-construct';
+import { AgentKnowledgeBase } from '../../constructs/AgentKnowledgeBase';
 
 export class DemoTemplateStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {

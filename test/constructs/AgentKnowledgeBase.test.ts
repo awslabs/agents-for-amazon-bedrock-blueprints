@@ -1,6 +1,6 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { AgentKnowledgeBase } from '../../bin/constructs/AgentKnowledgeBase';
+import { AgentKnowledgeBase } from '../../constructs/AgentKnowledgeBase';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { readFileSync } from 'fs';
 import { join } from 'path';

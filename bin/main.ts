@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { App } from 'aws-cdk-lib';
-import { DemoTemplateStack } from '../lib/demo_template/DemoTemplate';
+import { DemoTemplateStack } from '../lib/stacks/demo-template';
 
 const permissionObject = {
     /* If you don't specify 'env', this stack will be environment-agnostic.

@@ -2,6 +2,7 @@ import { aws_bedrock as bedrock } from 'aws-cdk-lib';
 import { Construct } from "constructs";
 import { USER_INPUT_ACTION_NAME, USER_INPUT_PARENT_SIGNATURE } from './utilities/constants';
 
+
 export interface TagsConfig {
     [key: string]: string;
 }
@@ -19,7 +20,7 @@ export interface AgentDefinitionProps {
     /**
      * For additional properties that might not be supported by blueprints but available for CfnAgent.
      */
-    [key: string]: any; 
+    [key: string]: any;
 }
 
 export enum PromptType {
@@ -41,7 +42,6 @@ export class AgentDefinitionBuilder extends Construct {
     private agentDefinition: bedrock.CfnAgentProps;
     private overrideLambda: string;
     private promptConfigurations: bedrock.CfnAgent.PromptConfigurationProperty[] = [];
-
     constructor(scope: Construct, id: string, props: AgentDefinitionProps) {
         super(scope, id);
         this.agentDefinition = {
@@ -51,7 +51,7 @@ export class AgentDefinitionBuilder extends Construct {
             agentResourceRoleArn: props.agentResourceRoleArn,
             customerEncryptionKeyArn: props.customerEncryptionKeyArn,
             foundationModel: props.foundationModel ?? "anthropic.claude-v2",
-            idleSessionTtlInSeconds: props.idleSessionTtlInSeconds ?? 1200,
+            idleSessionTtlInSeconds: props.idleSessionTtlInSeconds ?? 123,
             tags: props.tags ?? {},
             testAliasTags: props.testAliasTags ?? {},
         };
@@ -67,7 +67,7 @@ export class AgentDefinitionBuilder extends Construct {
         // Add prompt configs if present:
         if (this.promptConfigurations || this.overrideLambda) {
             // Validate if parserMode is set for any prompt then override lambda is also set.
-            if(this.promptConfigurations?.some(p => p.parserMode === PromptConfig_Override) && !this.overrideLambda) {
+            if (this.promptConfigurations?.some(p => p.parserMode === PromptConfig_Override) && !this.overrideLambda) {
                 throw new Error('`overrideLambda` field must be set in `promptOverrideConfigurations` if `parserMode` is set to `OVERRIDDEN`');
             }
 
@@ -164,7 +164,7 @@ export class AgentDefinitionBuilder extends Construct {
     public withPromptParserOverride(lambdaArn: string) {
         // Lambda arn Pattern from https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_PromptOverrideConfiguration.html
         const supportedLambdaPattern = /^arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}(-gov)?-[a-z]+-\d{1}:\d{12}:function:[a-zA-Z0-9-_.]+(:(\$LATEST|[a-zA-Z0-9-_]+))?$/;
-        
+
         // Validate lambda ARN:
         supportedLambdaPattern.test(lambdaArn);
 
@@ -209,7 +209,7 @@ export class AgentDefinitionBuilder extends Construct {
         return this;
     }
 
-    public withAdditionalProps(props: {[key: string]:any}) {
+    public withAdditionalProps(props: { [key: string]: any }) {
         this.agentDefinition = {
             ...this.agentDefinition,
             ...(props || {})
