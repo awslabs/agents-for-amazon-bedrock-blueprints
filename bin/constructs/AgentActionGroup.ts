@@ -1,19 +1,35 @@
 import { Construct } from "constructs";
-import { aws_bedrock as bedrock } from 'aws-cdk-lib';
+import { aws_bedrock as bedrock, Duration, Fn } from 'aws-cdk-lib';
 import { Code, Function, FunctionProps, IFunction, Runtime } from "aws-cdk-lib/aws-lambda";
-import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { Effect, IManagedPolicy, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { extname, join } from 'path'
+import { NodejsFunction, NodejsFunctionProps } from "aws-cdk-lib/aws-lambda-nodejs";
+
 
 /**
  * Interface defines the properties of code to build the lambda function.
  * The constructs will be responsible for permission management.
  */
 export interface ActionGroupLambdaDefinition {
-    //lambdaCode is a Buffer containing the code for the Lambda function
-    lambdaCode: Buffer;
+    // lambdaCode is a Buffer containing the code for the Lambda function. 
+    // If `lamdaCode` is `undefined`, it means that the code is expected to be in a separate file, and the function can proceed with loading the code from the specified asset.
+    lambdaCode?: Buffer | undefined
     //lambdaRuntime is the runtime of the Lambda function
     lambdaRuntime: Runtime;
     //lambdaHandler provides the entry point of the Lambda function
     lambdaHandler: string;
+    //codeSourceType Specifies whether the Lambda function code is inline or from a separate file ('inline' or 'asset').
+    codeSourceType: 'inline' | 'asset';
+    // fileName provides the file name of the Typescript of Javascript Lambda code
+    fileName: string;
+    // timeoutInMinutes - timeout duration for the Lambda function (optional)
+    timeoutInMinutes?: number | undefined;
+    // environment -  environment variables of the Lambda function (optional)
+    environment?: { [key: string]: string; } | undefined;
+    // managedPolicies - managed policies to be attached to the Lambda function's execution role (optional)
+    managedPolicies?: IManagedPolicy[];
+    // inlinePolicies - inline policies to be attached to the Lambda function's execution role (optional)
+    inlinePolicies?: { [key: string]: PolicyDocument };
 }
 
 /**
@@ -70,6 +86,7 @@ export class AgentActionGroup extends Construct {
     public readonly actionGroupState: string;
     actionExecutor: bedrock.CfnAgent.ActionGroupExecutorProperty;
     public lambdaFunc: IFunction;
+
     constructor(scope: Construct, id: string, props: AgentActionGroupProps) {
         super(scope, id);
 
@@ -85,49 +102,97 @@ export class AgentActionGroup extends Construct {
 
         this.schemaDefinition = props.schemaDefinition;
         this.actionGroupState = props.actionGroupState ?? 'ENABLED';
+
     }
 
     /**
-     * Creates a new AWS Lambda function with the provided code file and attaches
-     * required permissions.
+     * Creates a new AWS Lambda function with the provided code file that contains the business logic for an action group and attaches
+     * required permissions. This Lambda function serves as the backend processing unit for the Action Group. 
+     * It receives the information that the Bedrock agent elicits from the user during the conversation and performs the necessary actions 
+     * based on the provided business logic.
      *
      * @param lambdaCode - A Buffer(file) containing the code for the Lambda function.
      * @param lambdaRuntime - The runtime environment for the Lambda function (e.g., Node.js, Python, etc.).
      * @param handler - The entry point for the Lambda function (e.g., 'index.handler').
+     * @param codeSourceType - Specifies whether the code is inline or from a seperate file 
+     * @param fileName - The name of the file containing the Lambda function code (if codeSourceType is 'asset').
+     * @param timeoutInMinutes - The timeout duration for the Lambda function.
+     * @param environment - The environment variables to be passed to the Lambda function.
+     * @param managedPolicies - The managed policies to be attached to the Lambda function's execution role.
+     * @param inlinePolicies - The inline policies to be attached to the Lambda function's execution role.
      * @returns The created Lambda function instance.
      */
-    createLambdaFunction(lambdaCode: Buffer, lambdaRuntime: Runtime, handler: string): IFunction {
 
-        const executionRole = this.createLambdaFunctionExecutionRole();
-        const lambdaFuncProps: FunctionProps = {
-            runtime: lambdaRuntime,
-            handler: handler,
-            code: Code.fromInline(lambdaCode.toString()),
-            role: executionRole
-        };
 
-        return new Function(this, 'MyLambdaFunction', lambdaFuncProps);
+    // NOTE: Modified the createLambdaFunction function to support both inline code and code from a seperate file (asset) 
+    createLambdaFunction(
+        lambdaCode: Buffer | undefined,
+        lambdaRuntime: Runtime,
+        handler: string,
+        codeSourceType: 'inline' | 'asset',
+        fileName: string,
+        timeoutInMinutes: number | undefined,
+        environment: { [key: string]: string; } | undefined,
+        managedPolicies: IManagedPolicy[] = [],  // <-- Accept managedPolicies here
+        inlinePolicies: { [key: string]: PolicyDocument } = {}  // <-- Accept inlinePolicies here
+    ): IFunction {
+
+        const executionRole = this.createLambdaFunctionExecutionRole(managedPolicies, inlinePolicies);  // <-- Pass managedPolicies and inlinePolicies to createLambdaFunctionExecutionRole
+
+        if (codeSourceType === 'inline') {
+            if (typeof lambdaCode !== 'undefined') {
+                const functionProps = {
+                    runtime: lambdaRuntime,
+                    handler: `${fileName}.handler`,
+                    code: Code.fromInline(lambdaCode.toString()),
+                    role: executionRole,
+                };
+                return new Function(this, 'BedrockLambdaFunction', functionProps);
+            } else {
+                throw new Error('lambdaCode is undefined for inline code.');
+            }
+        } else if (codeSourceType === 'asset') {
+            if (extname(fileName).toLowerCase() === '.ts') {
+                const nodejsFunctionProps = {
+                    runtime: lambdaRuntime,
+                    handler: handler,
+                    entry: join(__dirname, '..', '..', '..', fileName),
+                    role: executionRole,
+                    timeout: Duration.minutes(typeof timeoutInMinutes === 'number' ? timeoutInMinutes : 1),
+                    environment: {
+                        ...(environment?.CLUSTER_ARN ? { CLUSTER_ARN: environment.CLUSTER_ARN } : {}), // If environment.CLUSTER_ARN exists and is not undefined, include it in the environment object of NodejsFunctionProps
+                        ...(environment?.SECRET_ARN ? { SECRET_ARN: environment.SECRET_ARN } : {}), // If environment.SECRET_ARN exists and is not undefined, include it in the environment object of NodejsFunctionProps
+                    },
+                };
+                return new NodejsFunction(this, 'ActionGroupExecutionFunc', nodejsFunctionProps);
+            } else {
+                throw new Error('Invalid file extension. Please provide a .ts file.');
+            }
+        } else {
+            throw new Error('Invalid code source type. Please provide either "inline" or "asset".');
+        }
     }
 
-    createLambdaFunctionExecutionRole() {
+    createLambdaFunctionExecutionRole(managedPolicies: IManagedPolicy[] = [], inlinePolicies: { [key: string]: PolicyDocument } = {}) {
+
         const lambdaRole = new Role(this, 'LambdaRole', {
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
             description: 'Execution Role for Lambda function',
-            managedPolicies: [
-                ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
-            ],
+            managedPolicies: managedPolicies,  // Include managed policies defined as part of the action group 
             inlinePolicies: {
-                'AllowBedrockInvoke': new PolicyDocument({
-                    statements: [
-                        new PolicyStatement({
-                            effect: Effect.ALLOW,
-                            actions: ['sts:AssumeRole', 'bedrock:InvokeModel'],
-                            resources: ['*']
-                        })
-                    ]
-                })
+                ...inlinePolicies, // Include additional inline policies defined as part of the action group
+                // 'AllowBedrockInvoke': new PolicyDocument({
+                //     statements: [
+                //         new PolicyStatement({
+                //             effect: Effect.ALLOW,
+                //             actions: ['sts:AssumeRole', 'bedrock:InvokeModel'],
+                //             resources: ['*']
+                //         })
+                //     ]
+                // }),
             }
         });
+
 
         return lambdaRole;
     }
@@ -139,8 +204,8 @@ export class AgentActionGroup extends Construct {
                 lambda: this.lambdaFunc.functionArn
             };
         } else if (actionGroupExecutor.lambdaDefinition) {
-            const { lambdaCode, lambdaRuntime, lambdaHandler } = actionGroupExecutor.lambdaDefinition;
-            this.lambdaFunc = this.createLambdaFunction(lambdaCode, lambdaRuntime, lambdaHandler);
+            const { lambdaCode, lambdaRuntime, lambdaHandler, codeSourceType, fileName, timeoutInMinutes, environment, managedPolicies, inlinePolicies } = actionGroupExecutor.lambdaDefinition;
+            this.lambdaFunc = this.createLambdaFunction(lambdaCode, lambdaRuntime, lambdaHandler, codeSourceType, fileName, timeoutInMinutes, environment, managedPolicies, inlinePolicies);
             this.actionExecutor = {
                 lambda: this.lambdaFunc.functionArn
             };

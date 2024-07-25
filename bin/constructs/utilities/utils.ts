@@ -1,7 +1,6 @@
-import { writeFileSync } from 'fs';
-import { resolve } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Interface to store the combination of filenames and their contents.
@@ -35,11 +34,12 @@ export function generateFileBufferMap(files: Buffer[]) {
  */
 export function writeFilesToDir(dirPath: string, files: FileBufferMap) {
     for (const [fileName, fileBuffer] of Object.entries(files)) {
-        const filePath = resolve(dirPath, fileName);
-        console.log(`Writing file to ${filePath}`);
-        writeFileSync(filePath, fileBuffer);
+        const filePath = path.resolve(dirPath, fileName);
+        // console.log(`Writing file to ${filePath}`);
+        fs.writeFileSync(filePath, fileBuffer);
     }
 }
+
 
 /**
  * Collection and property names follow regex: ^[a-z][a-z0-9-]{2,31}$. We will
@@ -50,7 +50,9 @@ export function writeFilesToDir(dirPath: string, files: FileBufferMap) {
  * @returns string that conforms to AOSS validations (timmedName-prefix)
  */
 export function generateNamesForAOSS(resourceName: string, suffix: string) {
-    const MAX_ALLOWED_NAME_LENGTH = 32;
+    const MAX_ALLOWED_NAME_LENGTH = 30;
     const maxResourceNameLength = MAX_ALLOWED_NAME_LENGTH - suffix.length;
-    return `${resourceName.slice(0, maxResourceNameLength)}-${suffix}`.toLowerCase();
+    const trimmedResourceName = resourceName.slice(0, maxResourceNameLength).replace(/[-]+$/, '');  //replace method to remove any trailing hyphens from the trimmed resource name before appending the suffix. 
+    // console.log("trimmedResourceName", `${trimmedResourceName}-${suffix}`.toLowerCase());
+    return `${trimmedResourceName}-${suffix}`.toLowerCase();
 }

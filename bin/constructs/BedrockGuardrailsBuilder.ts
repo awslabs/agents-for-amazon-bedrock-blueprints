@@ -59,8 +59,8 @@ export enum PIIType {
     VEHICLE_IDENTIFICATION_NUMBER = 'VEHICLE_IDENTIFICATION_NUMBER',
 }
 
-export enum ManagedWordsTypes{
-    PROFANITY='PROFANITY'
+export enum ManagedWordsTypes {
+    PROFANITY = 'PROFANITY'
 }
 
 export interface BedrockGuardrailsBuilderProps {
@@ -127,7 +127,7 @@ export class BedrockGuardrailsBuilder extends Construct {
     public withPIIConfig(action: PIIAction, piiType: PIIType) {
         this.piiConfigs.push({
             type: piiType,
-            action:action
+            action: action
         });
         return this;
     }
@@ -142,18 +142,20 @@ export class BedrockGuardrailsBuilder extends Construct {
         return this;
     }
 
-    public withManagedWordsConfig(type:ManagedWordsTypes) {
-        this.managedWordsConfigs.push({type:type});
+    public withManagedWordsConfig(type: ManagedWordsTypes) {
+        this.managedWordsConfigs.push({ type: type });
         return this;
     }
 
-    public withWordsConfig(wordsToBlock:string[]) {
+    public withWordsConfig(wordsToBlock: string[]) {
         const wordsToBlockObjects = wordsToBlock.map(word => ({ text: word }));
-        this.wordsConfig = this.wordsConfig.concat(wordsToBlockObjects);
+        // this.wordsConfig.concat(wordsToBlockObjects);
+        this.wordsConfig = [...this.wordsConfig, ...wordsToBlockObjects];  // <-- spread operator to concatenate the wordsToBlockObject array with the existing this.wordsConfig array.
         return this;
     }
 
-    public build():bedrock.CfnGuardrail {
+
+    public build(): bedrock.CfnGuardrail {
         if (this.filterConfigs.length > 0) {
             this.guardrailConfigs = {
                 ...this.guardrailConfigs,
@@ -181,12 +183,12 @@ export class BedrockGuardrailsBuilder extends Construct {
             };
         }
 
-        if(this.managedWordsConfigs.length>0 || this.wordsConfig.length>0) {
+        if (this.managedWordsConfigs.length > 0 || this.wordsConfig.length > 0) {
             this.guardrailConfigs = {
                 ...this.guardrailConfigs,
                 wordPolicyConfig: {
                     managedWordListsConfig: this.managedWordsConfigs,
-                    wordsConfig:this.wordsConfig
+                    wordsConfig: this.wordsConfig
                 }
             };
         }

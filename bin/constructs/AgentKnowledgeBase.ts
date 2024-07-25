@@ -1,5 +1,5 @@
-import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
-import { Aws, CustomResource, Duration, aws_bedrock as bedrock } from 'aws-cdk-lib';
+import { ArnPrincipal, Effect, IPrincipal, IRole, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { Aws, CustomResource, Duration, Fn, aws_bedrock as bedrock } from 'aws-cdk-lib';
 import { Construct } from "constructs";
 import { OpenSearchServerlessHelper, OpenSearchServerlessHelperProps } from "./utilities/OpenSearchServerlessHelper";
 import { AMAZON_BEDROCK_METADATA, AMAZON_BEDROCK_TEXT_CHUNK, KB_DEFAULT_VECTOR_FIELD } from "./utilities/constants";
@@ -9,6 +9,7 @@ import { resolve } from "path";
 import { Provider } from "aws-cdk-lib/custom-resources";
 import { FileBufferMap, generateFileBufferMap, generateNamesForAOSS } from "./utilities/utils";
 import { BedrockKnowledgeBaseModels } from "./utilities/BedrockKnowledgeBaseModels";
+
 
 export enum KnowledgeBaseStorageConfigurationTypes {
     OPENSEARCH_SERVERLESS = "OPENSEARCH_SERVERLESS",
@@ -58,6 +59,7 @@ export interface AgentKnowledgeBaseProps {
      * The available storage configurations are defined in the `KnowledgeBaseStorageConfigurationTypes` enum.
      */
     storageConfiguration?: KnowledgeBaseStorageConfigurationProps;
+
 }
 
 export class AgentKnowledgeBase extends Construct {
@@ -67,6 +69,8 @@ export class AgentKnowledgeBase extends Construct {
     public readonly agentInstruction: string;
     embeddingModel: BedrockKnowledgeBaseModels;
     kbRole: Role;
+    public assetManagementBucketName: string; // Added assetManagementBucketName as a class property to use it KB role definitions
+
 
     constructor(scope: Construct, id: string, props: AgentKnowledgeBaseProps) {
         super(scope, id);
@@ -81,19 +85,20 @@ export class AgentKnowledgeBase extends Construct {
         this.knowledgeBaseName = props.kbName;
         this.agentInstruction = props.agentInstruction;
         this.addAssetFiles(props.assetFiles);
-        this.kbRole = this.createRoleForKB();
 
-        // Create the knowledge base facade.
+        this.kbRole = this.createRoleForKB(this.assetManagementBucketName, accountId);
+
+        // Create the knowledge base
         this.knowledgeBase = this.createKnowledgeBase(props.kbName);
 
         // Setup storageConfigurations
         const storageConfig = props.storageConfiguration?.type ?? KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS;
         switch (storageConfig) {
-        case KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS:
-            this.setupOpensearchServerless(props.kbName, region, accountId);
-            break;
-        default:
-            throw new Error(`Unsupported storage configuration type: ${storageConfig}`);
+            case KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS:
+                this.setupOpensearchServerless(props.kbName, region, accountId);
+                break;
+            default:
+                throw new Error(`Unsupported storage configuration type: ${storageConfig}`);
         }
     }
 
@@ -125,7 +130,7 @@ export class AgentKnowledgeBase extends Construct {
      *
      * @param kbName - The name of the Knowledge Base.
      * @returns The created Amazon Bedrock CfnKnowledgeBase resource.
-     */ 
+     */
     private createKnowledgeBase(kbName: string) {
         return new bedrock.CfnKnowledgeBase(
             this,
@@ -146,11 +151,28 @@ export class AgentKnowledgeBase extends Construct {
         );
     }
 
+
+    /**
+     * Creates an IAM role for the Amazon Bedrock Knowledge Base.     *
+     * The role includes the following permissions:
+     * 1. Permission to invoke the specified embedding model using the `bedrock:InvokeModel` action.
+     *    This allows the KB to generate embeddings for ingested data.
+     * 2. Full access to Amazon S3 (should be restricted later).
+     *    This allows the KB to access assets stored in S3 buckets.
+     * 3. Full access to Amazon OpenSearch Serverless (should be restricted later).
+     *    This allows the KB to interact with the OpenSearch Serverless service.
+     *
+     * @param assetBucketName The name of the S3 bucket where the assets are stored.
+     * @param accountId The AWS account ID where the resources are deployed.
+     * @returns The newly created IAM role for the Amazon Bedrock KB service.
+     */
+
+
     /**
      * Creates a service role that can access the FoundationalModel.
      * @returns Service role for KB
      */
-    private createRoleForKB(): Role {
+    private createRoleForKB(assetBucketName: string, accountId: string): Role {
         const embeddingsAccessPolicyStatement = new PolicyStatement({
             sid: 'AllowKBToInvokeEmbedding',
             effect: Effect.ALLOW,
@@ -158,14 +180,36 @@ export class AgentKnowledgeBase extends Construct {
             resources: [this.embeddingModel.getArn()],
         });
 
+
         const kbRole = new Role(this, 'BedrockKBServiceRole', {
             assumedBy: new ServicePrincipal('bedrock.amazonaws.com'),
         });
 
+
         kbRole.addToPolicy(embeddingsAccessPolicyStatement);
+
+        // Added S3 full access to KB role for now; later restrict it to only the S3 bucket where the asset is stored
+        // TODO: Restrict the S3 policy to the buckets where the assets are deployed
+        kbRole.addManagedPolicy(
+            ManagedPolicy.fromAwsManagedPolicyName(
+                'AmazonS3FullAccess',
+            ),
+        );
+
+        // Add permissions to access OpenSearch Serverless
+        const openSearchServerlessAccessPolicyStatement = new PolicyStatement({
+            sid: 'AllowKBToAccessOpenSearchServerless',
+            effect: Effect.ALLOW,
+            actions: ['opensearchserverless:*'],
+            resources: ['*'],
+        });
+
+        kbRole.addToPolicy(openSearchServerlessAccessPolicyStatement);
 
         return kbRole;
     }
+
+
 
     public addS3Permissions(bucketName: string, accountId: string) {
         const s3AssetsAccessPolicyStatement = new PolicyStatement({
@@ -214,7 +258,12 @@ export class AgentKnowledgeBase extends Construct {
                     statements: [
                         new PolicyStatement({
                             effect: Effect.ALLOW,
-                            actions: ["bedrock:StartIngestionJob"],
+                            actions: ["bedrock:StartIngestionJob",   // Start an ingestion job for the knowledgebase
+                                "bedrock:DeleteDataSource",    // Delete a data source associated with the knowledgebase
+                                "bedrock:DeleteKnowledgeBase",  // Delete the knowledgebase
+                                "bedrock:GetDataSource",        // Get information about a data source associated with the knowledgebase 
+                                "bedrock:UpdateDataSource"      // Update a data source associated with the knowledgebase
+                            ],
                             resources: [`arn:aws:bedrock:${Aws.REGION}:${Aws.ACCOUNT_ID}:knowledge-base/${knowledgeBaseId}`],
                         }),
                     ],
@@ -222,11 +271,12 @@ export class AgentKnowledgeBase extends Construct {
             },
         });
 
-        const onEventHandler = new NodejsFunction(this, 'DataSyncCustomResourceHandler', {
+        // Create a Node.js Lambda function 
+        const onEventHandler = new NodejsFunction(this, 'SyncDataSourceToKBFunc', {
             memorySize: 128,
             timeout: Duration.minutes(15),
             runtime: Runtime.NODEJS_18_X,
-            handler: 'onEvent',
+            handler: 'onEvent',     // the handler function name is set OnEvent
             entry: resolve(__dirname, 'utilities', 'lambdaFunctions', 'data-source-sync.ts'),
             bundling: {
                 nodeModules: ['@opensearch-project/opensearch', 'ts-retry'],
@@ -234,12 +284,13 @@ export class AgentKnowledgeBase extends Construct {
             role: lambdaExecutionRole,
         });
 
-        const provider = new Provider(this, 'Provider', {
+        // Create a custom resource provider
+        const provider = new Provider(this, 'SyncDataSourceToKBProvider', {
             onEventHandler: onEventHandler,
         });
 
-        // Create an index in the OpenSearch collection
-        return new CustomResource(this, 'DataSyncLambda', {
+        // Create a custom resource to trigger the data source sync
+        return new CustomResource(this, 'SyncDataSourceToKBCustomResource', {
             serviceToken: provider.serviceToken,
             properties: {
                 knowledgeBaseId: knowledgeBaseId,
@@ -273,7 +324,7 @@ export class AgentKnowledgeBase extends Construct {
             name: `${this.knowledgeBase.name}-DataSource`,
 
             // the properties below are optional
-            dataDeletionPolicy: 'DELETE',
+            dataDeletionPolicy: 'RETAIN', // Changing it to RETAIN that allows clean stack deletion
             description: 'Data source for KB created through Blueprints',
             vectorIngestionConfiguration: {
                 chunkingConfiguration: {
@@ -287,6 +338,8 @@ export class AgentKnowledgeBase extends Construct {
                 },
             },
         });
+
+        // console.log('Data source properties created within createAndSyncDataSource method', cfnDataSource)
 
         this.syncDataSource(cfnDataSource.attrDataSourceId, this.knowledgeBase.attrKnowledgeBaseId);
         return cfnDataSource;
@@ -311,9 +364,10 @@ export class AgentKnowledgeBase extends Construct {
      * 6. Adds the AOSS storage configuration to the KB.
      * 7. Sets up dependencies between the KB and the permission custom resource.
      */
-    private setupOpensearchServerless(kbName: string, region: string, accountId: string) {
+    private async setupOpensearchServerless(kbName: string, region: string, accountId: string) {
         const aossCollectionName = generateNamesForAOSS(kbName, 'collection');
         const validationLambdaExecutionRole = this.createValidationLambdaRole();
+        // TODO: Check if you need to add User principal to the AOSS role to allow the user to access the index
 
         // Create the AOSS collection.
         const aossCollection = new OpenSearchServerlessHelper(this, 'AOSSCollectionForKB', {
@@ -323,16 +377,18 @@ export class AgentKnowledgeBase extends Construct {
             accountId: accountId,
         });
 
-        // Once collection is created, allow KB to access it
+        // Adds an IAM policy to an existing knowledgebase's IAM role, granting the role permission 
+        // to perform all AOSS API operations on a specific AOSS collection 
+        // This is to ensure knowledgebase has the necessary permissions to interact with the AOSS collection and its indices
         this.addAOSSPermissions(aossCollection.collection.attrArn);
 
-        // Permission propagation in AOSS can take up to 2 mins, wait until an
-        // index can be accessed.
-        const permissionCustomResource = this.waitForPermissionPropagation(validationLambdaExecutionRole, aossCollection.collection.attrCollectionEndpoint, aossCollection.indexName);
+        // Permission propagation in AOSS can take up to 2 mins, wait until an index can be accessed.
+        const permissionCustomResource = this.deployCRToCheckIndexExistence(validationLambdaExecutionRole, aossCollection.collection.attrCollectionEndpoint, aossCollection.indexName);
         permissionCustomResource.node.addDependency(aossCollection.collection);
 
         this.addAOSSStorageConfigurationToKB(aossCollection.collection.attrArn, aossCollection.indexName);
 
+        // Ensuring the knowlegebase creation depends on the successful setup of OpenSearch
         this.knowledgeBase.node.addDependency(permissionCustomResource);
     }
 
@@ -373,7 +429,7 @@ export class AgentKnowledgeBase extends Construct {
      * @returns Role with permissions to acess the AOSS collection and indices
      */
     private createValidationLambdaRole() {
-        return new Role(this, 'PermissionValidationRole', {
+        return new Role(this, 'LambdaRoleToCheckIndexExistence', {
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
             managedPolicies: [ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')],
             inlinePolicies: {
@@ -403,9 +459,9 @@ export class AgentKnowledgeBase extends Construct {
      * @param indexName - The name of the OpenSearch index to be validated.
      * @returns The created CustomResource instance.
      */
-    private waitForPermissionPropagation(validationRole: Role, collectionEndpoint: string, indexName: string) {
+    private deployCRToCheckIndexExistence(validationRole: Role, collectionEndpoint: string, indexName: string) {
 
-        const onEventHandler = new NodejsFunction(this, 'PermissionCustomResourceHandler', {
+        const onEventHandler = new NodejsFunction(this, 'CheckIndexExistenceFunc', {
             memorySize: 128,
             timeout: Duration.minutes(15),
             runtime: Runtime.NODEJS_18_X,
@@ -417,12 +473,12 @@ export class AgentKnowledgeBase extends Construct {
             role: validationRole,
         });
 
-        const provider = new Provider(this, 'PermissionValidationProvider', {
+        const provider = new Provider(this, 'CheckIndexExistenceProvider', {
             onEventHandler: onEventHandler,
         });
 
         // Create an index in the OpenSearch collection
-        return new CustomResource(this, 'PermissionValidationCustomResource', {
+        return new CustomResource(this, 'CheckIndexExistenceCustomResource', {
             serviceToken: provider.serviceToken,
             properties: {
                 collectionEndpoint: collectionEndpoint,

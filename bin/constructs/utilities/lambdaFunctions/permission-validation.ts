@@ -8,75 +8,116 @@ const CLIENT_TIMEOUT_MS = 1000;
 const CLIENT_MAX_RETRIES = 5;
 
 const RETRY_CONFIG = {
-    delay: 10000, //10 sec
-    maxTry: 15, // Should wait atleast 2 mins for the permissions to propagate
+    delay: 30000, // 30 seconds
+    maxTry: 20, // Maximum of 20 retries (approximately 10 minutes)
 };
+
+/**
+ * Creates an OpenSearch client with the provided configuration.
+ * @param collectionEndpoint - The endpoint of the OpenSearch collection.
+ * @returns The configured OpenSearch client.
+ */
+function createOpenSearchClient(collectionEndpoint: string): Client {
+    const signerResponse = AwsSigv4Signer({
+        region: process.env.AWS_REGION!,
+        service: 'aoss',
+        getCredentials: defaultProvider(),
+    });
+
+    return new Client({
+        ...signerResponse,
+        maxRetries: CLIENT_MAX_RETRIES,
+        node: collectionEndpoint,
+        requestTimeout: CLIENT_TIMEOUT_MS,
+    });
+}
+
+/**
+ * Checks if the OpenSearch index exists and retries the operation if it fails initially.
+ * @param openSearchClient - The OpenSearch client to use for the index existence check.
+ * @param indexName - The name of the OpenSearch index to check.
+ * @returns A promise that resolves if the index exists, or rejects with an error if the index is not found after retries.
+ */
+async function checkIndexExists(openSearchClient: Client, indexName: string): Promise<void> {
+    try {
+        await retryAsync(
+            async () => {
+                const result = await openSearchClient.indices.exists({ index: indexName });
+                const statusCode = result.statusCode;
+
+                if (statusCode === 404) {
+                    throw new Error('Index not found');
+                } else if (statusCode === 200) {
+                    console.log('OpenSearch Serverless Index found');
+                } else {
+                    throw new Error(`Unknown error while looking for index: ${JSON.stringify(result)}`);
+                }
+            },
+            RETRY_CONFIG,
+        );
+    } catch (error) {
+        throw new Error(`Failed to check for index: ${error}`);
+    }
+}
+
 
 
 /**
  * Handles the 'Create', 'Update', and 'Delete' events for a custom resource.
- *
- * This function checks the existence of an OpenSearch index and retries the operation if the index is not found,
- * with a configurable retry strategy.
- *
  * @param event - The request object containing the event type and request variables.
- *   - indexName (required): The name of the OpenSearch index to check.
- *   - collectionEndpoint (required): The endpoint of the OpenSearch collection.
- * @param _context - The Lambda context object. Unused currently.
- *
- * @returns - A response object containing the physical resource ID of the index name.
- *   - For 'Create' or 'Update' events, the physical resource ID is 'osindex_<indexName>'.
- *   - For 'Delete' events, the physical resource ID is 'skip'.
+ * @param _context - The Lambda context object (unused).
+ * @returns A response object containing the physical resource ID.
  */
 export const onEvent = async (event: OnEventRequest, _context: unknown): Promise<OnEventResponse> => {
     const { indexName, collectionEndpoint } = event.ResourceProperties;
 
     try {
-        const signerResponse = AwsSigv4Signer({
-            region: process.env.AWS_REGION!,
-            service: 'aoss',
-            getCredentials: defaultProvider(),
-        });
+        const openSearchClient = createOpenSearchClient(collectionEndpoint);
 
-        const openSearchClient = new Client({
-            ...signerResponse,
-            maxRetries: CLIENT_MAX_RETRIES,
-            node: collectionEndpoint,
-            requestTimeout: CLIENT_TIMEOUT_MS,
-        });
-
-        if (event.RequestType == 'Create' || event.RequestType == 'Update') {
-            // Validate permissions to access index
-            await retryAsync(
-                async () => {
-                    let statusCode: null | number = 404;
-                    let result = await openSearchClient.indices.exists({
-                        index: indexName,
-                    });
-                    statusCode = result.statusCode;
-                    if (statusCode === 404) {
-                        throw new Error('Index not found');
-                    }
-                    else if (statusCode === 200) {
-                        console.log('Successfully checked index!');
-                    }
-                    else {
-                        throw new Error(`Unknown error while looking for index result opensearch response: ${JSON.stringify(result)}`);
-                    }
-
-                },
-                RETRY_CONFIG,
-            );
-        }
-        else {
-            return { PhysicalResourceId: 'skip' };
+        if (event.RequestType === 'Create' || event.RequestType === 'Update') {
+            console.log('Validating permissions to access index');
+            await checkIndexExists(openSearchClient, indexName);
+        } else if (event.RequestType === 'Delete') {
+            // console.log('Deleting index');
+            // await deleteIndex(openSearchClient, indexName);
+            // Index deletion is taken care of in aoss-index-operation.ts
+            return { PhysicalResourceId: event.PhysicalResourceId };
+        } else {
+            throw new Error(`Unsupported request type: ${event.RequestType}`);
         }
     } catch (error) {
-        console.error(error);
-        throw new Error(`Failed to check for index: ${error}`);
+        console.error('Error:', error);
+        throw error;
     }
 
-    return {
-        PhysicalResourceId: `osindex_${indexName}`,
-    };
+    console.log('Index validation successful');
+    return { PhysicalResourceId: `osindex_${indexName}` };
 };
+
+/**
+ * Deletes the specified OpenSearch index and retries the operation if it fails initially.
+ * @param openSearchClient - The OpenSearch client to use for deleting the index.
+ * @param indexName - The name of the OpenSearch index to delete.
+ * @returns A promise that resolves if the index is deleted, or rejects with an error if the deletion fails after retries.
+ */
+async function deleteIndex(openSearchClient: Client, indexName: string): Promise<void> {
+    try {
+        await retryAsync(
+            async () => {
+                const result = await openSearchClient.indices.delete({ index: indexName });
+                const statusCode = result.statusCode;
+
+                if (statusCode === 404) {
+                    console.log('Index not found, skipping deletion');
+                } else if (statusCode === 200) {
+                    console.log('Index deleted successfully');
+                } else {
+                    throw new Error(`Unknown error while deleting index: ${JSON.stringify(result)}`);
+                }
+            },
+            // RETRY_CONFIG,
+        );
+    } catch (error) {
+        throw new Error(`Failed to delete index: ${error}`);
+    }
+}
