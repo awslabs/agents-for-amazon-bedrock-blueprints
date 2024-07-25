@@ -116,17 +116,6 @@ export class AgentActionGroup extends Construct {
             managedPolicies: [
                 ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
             ],
-            inlinePolicies: {
-                'AllowBedrockInvoke': new PolicyDocument({
-                    statements: [
-                        new PolicyStatement({
-                            effect: Effect.ALLOW,
-                            actions: ['sts:AssumeRole', 'bedrock:InvokeModel'],
-                            resources: ['*']
-                        })
-                    ]
-                })
-            }
         });
 
         return lambdaRole;
