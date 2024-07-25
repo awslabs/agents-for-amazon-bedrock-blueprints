@@ -304,10 +304,18 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
     /** S3 asset management bucket functions */
 
     private setupS3Bucket() {
+        const logBucket = new Bucket(this, `AgentBlueprintAssetsAccessLogs-${uuidv4().slice(0, 4)}`, {
+            encryption: BucketEncryption.S3_MANAGED,
+            blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+        });
+
         return new Bucket(this, `AgentBlueprintAssets-${uuidv4().slice(0, 12)}`, {
             encryption: BucketEncryption.S3_MANAGED,
             blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-            enforceSSL: true
+            enforceSSL: true,
+            serverAccessLogsBucket: logBucket, // Accesslogging bucket
+            serverAccessLogsPrefix: 'logs/',
+            versioned: true, // Enable versioning
         });
     }
 
