@@ -4,7 +4,7 @@ import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws';
 import { OnEventRequest, OnEventResponse } from 'aws-cdk-lib/custom-resources/lib/provider-framework/types';
 import { retryAsync } from 'ts-retry';
 
-const CLIENT_TIMEOUT_MS = 1000;
+const CLIENT_TIMEOUT_MS = 10000;
 const CLIENT_MAX_RETRIES = 5;
 
 const RETRY_CONFIG = {
@@ -75,8 +75,12 @@ export const onEvent = async (event: OnEventRequest, _context: unknown): Promise
         console.error(error);
         throw new Error(`Failed to check for index: ${error}`);
     }
-
+    await sleep(5000); // Wait for 5 seconds before returning status
     return {
         PhysicalResourceId: `osindex_${indexName}`,
     };
 };
+
+async function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
