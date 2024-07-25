@@ -122,7 +122,33 @@ describe('BedrockAgentBlueprintsConstruct', () => {
 
         const template = Template.fromStack(stack);
 
-        template.resourceCountIs('AWS::S3::Bucket', 1);
+        template.resourceCountIs('AWS::S3::Bucket', 2);
+        template.hasResourceProperties('AWS::S3::Bucket', {
+            BucketEncryption: {
+                ServerSideEncryptionConfiguration: [
+                    {
+                        ServerSideEncryptionByDefault: {
+                            SSEAlgorithm: "AES256"
+                        }
+                    }
+                ]
+            },
+            LoggingConfiguration: {
+                DestinationBucketName: {
+                    Ref: Match.stringLikeRegexp(`TestConstructAgentBlueprintAssetsAccessLogs.*`),
+                },
+                LogFilePrefix: "logs/"
+            },
+            PublicAccessBlockConfiguration: {
+                BlockPublicAcls: true,
+                BlockPublicPolicy: true,
+                IgnorePublicAcls: true,
+                RestrictPublicBuckets: true
+            },
+            VersioningConfiguration: {
+                Status: "Enabled"
+            }
+        });
         template.resourceCountIs('Custom::CDKBucketDeployment', 1);
         template.hasResourceProperties('AWS::Bedrock::Agent', {
             ActionGroups: [
@@ -144,8 +170,8 @@ describe('BedrockAgentBlueprintsConstruct', () => {
             description: 'Test guardrail with all configurations',
             generateKmsKey: true,
         }).build();
-        
-        new BedrockAgentBlueprintsConstruct(stack, 'TestConstruct', { 
+
+        new BedrockAgentBlueprintsConstruct(stack, 'TestConstruct', {
             agentDefinition: agentDef,
             guardrail: guardrail,
         });
@@ -157,8 +183,8 @@ describe('BedrockAgentBlueprintsConstruct', () => {
             AgentName: 'NewFriendlyAgent',
             FoundationModel: 'anthropic.claude-v2',
             GuardrailConfiguration: {
-                GuardrailIdentifier:{ 'Fn::GetAtt': [ Match.stringLikeRegexp(`TestGuardrail.*`), 'GuardrailId' ] },
-                GuardrailVersion: { 'Fn::GetAtt': [ Match.stringLikeRegexp(`TestGuardrail.*`), 'Version' ] },
+                GuardrailIdentifier: { 'Fn::GetAtt': [Match.stringLikeRegexp(`TestGuardrail.*`), 'GuardrailId'] },
+                GuardrailVersion: { 'Fn::GetAtt': [Match.stringLikeRegexp(`TestGuardrail.*`), 'Version'] },
             }
         });
     });

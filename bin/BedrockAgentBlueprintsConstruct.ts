@@ -286,10 +286,18 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
      * @returns The newly created S3 bucket.
      */
     private setupS3Bucket() {
-        return new Bucket(this, `agent-knowledgebase-assets-${uuidv4().slice(0, 5)}`, {
+        const logBucket = new Bucket(this, `AgentBlueprintAssetsAccessLogs-${uuidv4().slice(0, 4)}`, {
             encryption: BucketEncryption.S3_MANAGED,
             blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-            enforceSSL: true
+        });
+
+        return new Bucket(this, `AgentBlueprintAssets-${uuidv4().slice(0, 12)}`, {
+            encryption: BucketEncryption.S3_MANAGED,
+            blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+            enforceSSL: true,
+            serverAccessLogsBucket: logBucket, // Accesslogging bucket
+            serverAccessLogsPrefix: 'logs/',
+            versioned: true, // Enable versioning
         });
     }
 

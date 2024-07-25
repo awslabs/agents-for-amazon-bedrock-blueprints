@@ -4,7 +4,7 @@ import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws';
 import { OnEventRequest, OnEventResponse } from 'aws-cdk-lib/custom-resources/lib/provider-framework/types';
 import { retryAsync } from 'ts-retry';
 
-const CLIENT_TIMEOUT_MS = 1000;
+const CLIENT_TIMEOUT_MS = 10000;
 const CLIENT_MAX_RETRIES = 5;
 
 const RETRY_CONFIG = {

@@ -10,8 +10,7 @@ const permissionObject = {
     * and Region that are implied by the current CLI configuration. */
     // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
     /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
-    env: { account: '11111111111', region: 'us-east-1' },
+    env: { account: '', region: 'us-east-1' },
 };
-
 const app = new App();
-new DemoTemplateStack(app, 'AmazonBedrockAgentBlueprintsStack2', permissionObject);
+new DemoTemplateStack(app, 'AmazonBedrockAgentBlueprintsDemoStack', permissionObject);

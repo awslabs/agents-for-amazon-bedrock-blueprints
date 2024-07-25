@@ -7,6 +7,7 @@ import { AgentDefinitionBuilder } from '../../bin/constructs/AgentDefinitionBuil
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AgentActionGroup } from '../../bin/constructs/AgentActionGroup';
 import { AgentKnowledgeBase } from '../../bin/constructs/AgentKnowledgeBase';
+import { BedrockGuardrailsBuilder, FilterType, ManagedWordsTypes, PIIAction, PIIType } from '../../bin/constructs/BedrockGuardrailsBuilder';
 
 export class DemoTemplateStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -15,6 +16,7 @@ export class DemoTemplateStack extends cdk.Stack {
         const agentDef = new AgentDefinitionBuilder(this, 'NewAgentDef', {})
             .withAgentName('NewFriendlyAgent')
             .withInstruction('nice new fun agent to do great things in code')
+            .withUserInput()
             .build();
 
         const inlineCode = Buffer.from(
@@ -25,55 +27,7 @@ export class DemoTemplateStack extends cdk.Stack {
                 };
                 `);
 
-        const inlineSchema = `{
-                    "openapi": "3.0.0",
-                    "info": {
-                        "title": "Insurance Claims Automation API",
-                        "version": "1.0.0",
-                        "description": "APIs for managing insurance claims by pulling a list of open claims, identifying outstanding paperwork for each claim, and sending reminders to policy holders."
-                    },
-                    "paths": {
-                        "/claims": {
-                            "get": {
-                                "summary": "Get a list of all open claims",
-                                "description": "Get the list of all open insurance claims. Return all the open claimIds.",
-                                "operationId": "getAllOpenClaims",
-                                "responses": {
-                                    "200": {
-                                        "description": "Gets the list of all open insurance claims for policy holders",
-                                        "content": {
-                                            "application/json": {
-                                                "schema": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "claimId": {
-                                                                "type": "string",
-                                                                "description": "Unique ID of the claim."
-                                                            },
-                                                            "policyHolderId": {
-                                                                "type": "string",
-                                                                "description": "Unique ID of the policy holder who has filed the claim."
-                                                            },
-                                                            "claimStatus": {
-                                                                "type": "string",
-                                                                "description": "The status of the claim. Claim can be in Open or Closed state"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        }
-                    }
-                    }
-                    `;
-
+        const fileBufferSchema: Buffer = readFileSync(resolve(__dirname, 'assets', 'openAPISchema.json'));
         const action = new AgentActionGroup(this, 'NewAction', {
             actionGroupName: 'DummyAction',
             description: 'Dummy action for dummy agent',
@@ -85,7 +39,7 @@ export class DemoTemplateStack extends cdk.Stack {
                 }
             },
             schemaDefinition: {
-                inlineAPISchema: inlineSchema
+                inlineAPISchema: fileBufferSchema.toString('utf8')
             },
         });
 
@@ -97,10 +51,22 @@ export class DemoTemplateStack extends cdk.Stack {
             assetFiles: [fileBuffer]
         });
 
+        const guardrail = new BedrockGuardrailsBuilder(this, "AgentGuardrail", {
+            name: "RubyOnRails",
+            generateKmsKey: true,
+        })
+            .withFiltersConfig(FilterType.INSULTS)
+            .withManagedWordsConfig(ManagedWordsTypes.PROFANITY)
+            .withWordsConfig(['government', 'dictator'])
+            .withPIIConfig(PIIAction.ANONYMIZE, PIIType.US_SOCIAL_SECURITY_NUMBER)
+            .withTopicConfig("Arts", "Anything related to arts and crafts", ['painting', 'ceramics'])
+            .build();
+
         new BedrockAgentBlueprintsConstruct(this, 'AmazonBedrockAgentBlueprintsStack', {
             agentDefinition: agentDef,
             actionGroups: [action],
             knowledgeBases: [knowledgeBase],
+            guardrail: guardrail,
         });
     }
 }
