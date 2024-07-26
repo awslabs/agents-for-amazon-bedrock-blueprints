@@ -4,6 +4,8 @@ import { Code, Function, FunctionProps, IFunction, Runtime } from "aws-cdk-lib/a
 import { Effect, IManagedPolicy, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { extname, join } from "path";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { mkdtempSync, rmdirSync, unlinkSync, writeFileSync } from "fs";
+import { tmpdir } from "os";
 
 /**
  * Interface defines the properties of code to build the lambda function.
@@ -12,19 +14,15 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 export interface ActionGroupLambdaDefinition {
     // lambdaCode is a Buffer containing the code for the Lambda function. 
     // If `lamdaCode` is `undefined`, it means that the code is expected to be in a separate file, and the function can proceed with loading the code from the specified asset.
-    lambdaCode?: Buffer | undefined
+    lambdaCode: Buffer 
     //lambdaRuntime is the runtime of the Lambda function
     lambdaRuntime: Runtime;
     //lambdaHandler provides the entry point of the Lambda function
     lambdaHandler: string;
-    //codeSourceType Specifies whether the Lambda function code is inline or from a separate file ('inline' or 'asset').
-    codeSourceType: 'inline' | 'asset';
-    // fileName provides the file name of the Typescript of Javascript Lambda code
-    fileName: string;
     // timeoutInMinutes - timeout duration for the Lambda function (optional)
-    timeoutInMinutes?: number | undefined;
+    timeoutInMinutes?: number;
     // environment -  environment variables of the Lambda function (optional)
-    environment?: { [key: string]: string; } | undefined;
+    environment?: { [key: string]: string; };
     // managedPolicies - managed policies to be attached to the Lambda function's execution role (optional)
     managedPolicies?: IManagedPolicy[];
     // inlinePolicies - inline policies to be attached to the Lambda function's execution role (optional)
@@ -127,11 +125,9 @@ export class AgentActionGroup extends Construct {
      * It receives the information that the Bedrock agent elicits from the user during the conversation and performs the necessary actions 
      * based on the provided business logic.
      *
-     * @param lambdaCode - A Buffer(file) containing the code for the Lambda function.
+     * @param lambdaCode - A Buffer containing the code for the Lambda function.
      * @param lambdaRuntime - The runtime environment for the Lambda function (e.g., Node.js, Python, etc.).
      * @param handler - The entry point for the Lambda function (e.g., 'index.handler').
-     * @param codeSourceType - Specifies whether the code is inline or from a seperate file 
-     * @param fileName - The name of the file containing the Lambda function code (if codeSourceType is 'asset').
      * @param timeoutInMinutes - The timeout duration for the Lambda function.
      * @param environment - The environment variables to be passed to the Lambda function.
      * @param managedPolicies - The managed policies to be attached to the Lambda function's execution role.
@@ -139,49 +135,53 @@ export class AgentActionGroup extends Construct {
      * @returns The created Lambda function instance.
      */
 
-
     createLambdaFunction(
-        lambdaCode: Buffer | undefined,
+        lambdaCode: Buffer,
         lambdaRuntime: Runtime,
         handler: string,
-        codeSourceType: 'inline' | 'asset',
-        fileName: string,
         timeoutInMinutes: number | undefined,
         environment: { [key: string]: string; } | undefined,
-        managedPolicies: IManagedPolicy[] = [],  
-        inlinePolicies: { [key: string]: PolicyDocument } = {}  
+        managedPolicies: IManagedPolicy[] = [],
+        inlinePolicies: { [key: string]: PolicyDocument } = {}
     ): IFunction {
 
-        const executionRole = this.createLambdaFunctionExecutionRole(managedPolicies, inlinePolicies);  // <-- Pass managedPolicies and inlinePolicies to createLambdaFunctionExecutionRole
+        if (!lambdaCode) {
+            throw new Error('lambdaCode is undefined.');
+        }
 
-        if (codeSourceType === 'inline') {
-            if (typeof lambdaCode !== 'undefined') {
-                const functionProps = {
-                    runtime: lambdaRuntime,
-                    handler: `${fileName}.handler`,
-                    code: Code.fromInline(lambdaCode.toString()),
-                    role: executionRole,
-                };
-                return new Function(this, 'BedrockLambdaFunction', functionProps);
-            } else {
-                throw new Error('lambdaCode is undefined for inline code.');
-            }
-        } else if (codeSourceType === 'asset') {
-            if (extname(fileName).toLowerCase() === '.ts') {
+        const executionRole = this.createLambdaFunctionExecutionRole(managedPolicies, inlinePolicies);
+        const codeString = lambdaCode.toString();
+
+        if (codeString.trim().startsWith('exports.handler')) {
+            // Inline code
+            const functionProps = {
+                runtime: lambdaRuntime,
+                handler: 'index.handler',
+                code: Code.fromInline(codeString),
+                role: executionRole,
+            };
+            return new Function(this, 'BedrockLambdaFunction', functionProps);
+        } else {
+            // Asset code
+            const tempDir = mkdtempSync(join(tmpdir(), 'lambda-code-'));
+            const tempFilePath = join(tempDir, 'index.ts');
+            writeFileSync(tempFilePath, lambdaCode);
+
+            try {
                 const nodejsFunctionProps = {
                     runtime: lambdaRuntime,
                     handler: handler,
-                    entry: join(__dirname, '..', '..', '..', fileName),
+                    entry: tempFilePath, // Use the temporary file path as the entry point
                     role: executionRole,
                     timeout: Duration.minutes(typeof timeoutInMinutes === 'number' ? timeoutInMinutes : 5),
                     environment: this.createEnvironmentVariables(environment),
                 };
                 return new NodejsFunction(this, 'ActionGroupExecutionFunc', nodejsFunctionProps);
-            } else {
-                throw new Error('Invalid file extension. Please provide a .ts file.');
+            } finally {
+                // Clean up temporary files
+                unlinkSync(tempFilePath);
+                rmdirSync(tempDir);
             }
-        } else {
-            throw new Error('Invalid code source type. Please provide either "inline" or "asset".');
         }
     }
 
@@ -189,6 +189,8 @@ export class AgentActionGroup extends Construct {
     /**
      * Creates a new IAM role with the necessary permissions for the Lambda function execution.
      * This role is used to grant the Lambda function permissions to interact with other AWS services.
+     * The role includes the AWS managed policy 'AWSLambdaBasicExecutionRole' by default.
+     * Additional managed policies and inline policies can be attached to the role as needed based on the action group requirements.
      *
      * @param managedPolicies - The managed policies to be attached to the Lambda function's execution role.
      * @param inlinePolicies - The inline policies to be attached to the Lambda function's execution role.
@@ -200,7 +202,10 @@ export class AgentActionGroup extends Construct {
         const lambdaRole = new Role(this, 'LambdaRole', {
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
             description: 'Execution Role for Lambda function',
-            managedPolicies: managedPolicies,  // Include managed policies defined as part of the action group 
+            managedPolicies: [
+                ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+                ...managedPolicies, // Include managed policies defined as part of the action group 
+            ], 
             inlinePolicies: {
                 ...inlinePolicies, // Include inline policies defined as part of the action group
             }
@@ -223,8 +228,8 @@ export class AgentActionGroup extends Construct {
                 lambda: this.lambdaFunc.functionArn
             };
         } else if (actionGroupExecutor.lambdaDefinition) {
-            const { lambdaCode, lambdaRuntime, lambdaHandler, codeSourceType, fileName, timeoutInMinutes, environment, managedPolicies, inlinePolicies } = actionGroupExecutor.lambdaDefinition;
-            this.lambdaFunc = this.createLambdaFunction(lambdaCode, lambdaRuntime, lambdaHandler, codeSourceType, fileName, timeoutInMinutes, environment, managedPolicies, inlinePolicies);
+            const { lambdaCode, lambdaRuntime, lambdaHandler, timeoutInMinutes, environment, managedPolicies, inlinePolicies } = actionGroupExecutor.lambdaDefinition;
+            this.lambdaFunc = this.createLambdaFunction(lambdaCode, lambdaRuntime, lambdaHandler, timeoutInMinutes, environment, managedPolicies, inlinePolicies);
             this.actionExecutor = {
                 lambda: this.lambdaFunc.functionArn
             };

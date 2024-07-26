@@ -3,7 +3,8 @@ import { Construct } from 'constructs';
 import { AgentActionGroup } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentActionGroup'
 import { AgentDefinitionBuilder } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder'
 import { BedrockAgentBlueprintsConstruct } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/BedrockAgentBlueprintsConstruct'
-
+import { join } from "path";
+import { readFileSync } from 'fs'; 
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
@@ -71,7 +72,7 @@ export class AgentWithFunctionDefinitionStack extends cdk.Stack {
 
         // Allow the Lambda function to access the Aurora Serverless and be able to query the database
         const managedPolicies = [
-            ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+            // ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
             ManagedPolicy.fromAwsManagedPolicyName('AmazonRDSDataFullAccess'),
         ];
 
@@ -92,10 +93,9 @@ export class AgentWithFunctionDefinitionStack extends cdk.Stack {
             description: 'Actions for getting the number of available vacations days for an employee and confirm new time off',
             actionGroupExecutor: {
                 lambdaDefinition: {
+                    lambdaCode: readFileSync(join(__dirname, '..', '..', 'lambda', '01-agent-with-function-definitions', 'ag-assist-with-vacations-lambda.ts')),
                     lambdaHandler: 'handler',
                     lambdaRuntime: Runtime.NODEJS_18_X,
-                    codeSourceType: 'asset',
-                    fileName: 'agents-for-amazaon-bedrock-blueprints/agents-for-bedrock-usecase-examples/lib/lambda/01-agent-with-function-definitions/ag-assist-with-vacations-lambda.ts',
                     timeoutInMinutes: 15,
                     environment: {
                        CLUSTER_ARN: auroraClusterArn,
