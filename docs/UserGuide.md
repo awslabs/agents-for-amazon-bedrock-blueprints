@@ -65,9 +65,9 @@ You can further customize the agent by adding knowledge bases, guardra
 
 The `BedrockAgentBlueprintsConstruct` provides several customization options:
 
-### Opt-out of resource creation for KB
+### Opt-out of creating knowledge base (KB) resources
 
-Users can choose to opt-out of creating KB resources as it may become expensive to deploy the AOSS clusters for KB. If any templates initializes KB, you can skip KB creation by adding a flag skipKBCreation in the CDK context.
+Users can choose to opt-out of creating KB resources as it can become expensive to deploy the AOSS clusters for KB. If any template initializes KB, you can skip KB creation by adding a flag skipKBCreation in the CDK context.
 
 Example:
 ```
@@ -75,11 +75,11 @@ cdk synth <STACK_NAME> --context skipKBCreation=true
 ```
 
 ### IAM Role Management
-The `BedrockAgentBlueprintsConstruct` can automatically create and manage an IAM role for your Bedrock agent if you don't provide one. If you don't specify an `agentResourceRoleArn` in the `AgentDefinitionBuilder`, the construct will create a new IAM role with the necessary permissions for your agent. It will add required permissions for the ActionGroup invocation, FoundationModel access, KB access etc.
+The `BedrockAgentBlueprintsConstruct' will automatically create and manage an IAM role for your Bedrock agent if you don't provide one. If you don't specify an `agentResourceRoleArn` in the `AgentDefinitionBuilder`, the construct will create a new IAM role with the necessary permissions for your agent. It will add required permissions for the ActionGroup invocation, FoundationModel access, KB access etc.
 
 However, if you prefer to use an existing IAM role, you can provide the ARN of that role using the `withAgentResourceRoleArn()` method in the `AgentDefinitionBuilder`.
 
-This also adds a resource policy to the Lambda functions associated with the provided action groups, The permission allows the 'bedrock.amazonaws.com' service principal to invoke the Lambda function, using the agent's ARN as the source ARN. This ensures that the Bedrock service can invoke the Lambda functions associated with the agent's action groups
+This also adds a resource policy to the Lambda functions associated with the provided action groups. The permission allows the 'bedrock.amazonaws.com' service principal to invoke the Lambda function, using the agent's ARN as the source ARN. This ensures that the Bedrock service can invoke the Lambda functions associated with the agent's action groups
 
 ### Asset bucket management
 The `BedrockAgentBlueprintsConstruct` automatically creates and manages Amazon S3 buckets for storing the contents of your knowledge bases and action groups. When you define a knowledge base using the `AgentKnowledgeBase`construct and add files from local store and/or when you use a file for defining schema for an action group using the `AgentActionGroup` construct the `BedrockAgentBlueprintsConstruct` creates an S3 bucket and uploads the specified asset files to it under separate folders. This feature simplifies the management of your agent's assets and ensures that they are securely stored and easily accessible by the corresponding AWS services. 
@@ -127,7 +127,7 @@ This method adds the required action group, using parentActionGroupSignature as 
 
 ### Action Groups
 
-The `AgentActionGroup` construct is a lightweight utility at allows you to define and configure action groups for your Amazon Bedrock agent. Action groups represent the set of actions that your agent can perform, and they are associated with a Lambda function and an API schema.
+The `AgentActionGroup` construct is a lightweight utility that allows you to define and configure action groups for your Amazon Bedrock agent. Action groups represent a set of actions that your agent can perform, and they are associated with a Lambda function and an API schema.
 
 #### Properties
 
@@ -206,9 +206,9 @@ new BedrockAgentBlueprintsConstruct(stack, 'MyAgentBlueprint', {
 
 ### Knowledge Bases
 
-The `AgentKnowledgeBase` construct is a utility class that simplifies the creation and management of Amazon Bedrock Knowledge Bases. A Knowledge Base is a repository of information that can be used to train and enhance the capabilities of an Agent.
-The `AgentKnowledgeBase` construct allows you to configure various aspects of a Knowledge Base, such as the storage configuration, knowledge base type, and data sources.
-To create a basic Knowledge Base with default settings, you can use the following code:
+The `AgentKnowledgeBase` construct is a utility class that simplifies the creation and management of Amazon Bedrock knowledge bases. A knowledge base is a repository of information that can be used to train and enhance the capabilities of an Agent.
+The `AgentKnowledgeBase` construct allows you to configure various aspects of a knowledge base, such as the storage configuration, knowledge base type, and data sources.
+To create a basic knowledge base with default settings, you can use the following code:
 
 ```
 const kbProps = {
@@ -220,11 +220,11 @@ const kbProps = {
 const kb = new AgentKnowledgeBase(stack, 'TestKB', kbProps);
 ```
 
-This will create a Knowledge Base with the name 'TestKB' and default values for the embedding model TITAN_EMBED_TEXT_V1 with AmazonOpenSearchServerless collection and default vector index.
+This will create a knowledge base with the name 'TestKB', set default values for the embedding model TITAN_EMBED_TEXT_V1 with AmazonOpenSearchServerless collection, and set default vector index.
 
 #### Customizing Knowledge Base Properties
 
-You can customize various properties of the Knowledge Base by passing additional options to the `AgentKnowledgeBase` constructor:
+You can customize various properties of the knowledge base by passing additional options to the `AgentKnowledgeBase` constructor:
 
 ```
 const kbProps = {
@@ -244,13 +244,13 @@ const kb = new AgentKnowledgeBase(stack, 'TestKB', kbProps);
 ```
 
 ### IAM Role Management
-`AgentKnowledgeBase` will create a service role to allow agent to access the KB and allow the KB to access the asset files in S3, permissions for accessing the AOSS collection and indices and permissions for accessing the embedding models.
+`AgentKnowledgeBase` will create a service role to allow agent to access the KB and allow the KB to access the asset files in S3, permissions for accessing the AOSS collection, and indices and permissions for accessing the embedding models.
 
 
 #### Creating and Synchronizing Data Sources
 
-The `AgentKnowledgeBase` construct provides a method `createAndSyncDataSource` to create and synchronize data sources with the Knowledge Base. Data sources can be Amazon S3 buckets or folders containing the information you want to include in the Knowledge Base:
-When we attach a knowledgebase to the `BedrockAgentBlueprintsConstruct` it calls the `createAndSyncDataSource` to populate the KB with the data in asset management bucket.
+The `AgentKnowledgeBase` construct provides a method `createAndSyncDataSource` to create and synchronize data sources with the knowledge base. Data sources can be Amazon S3 buckets or folders containing the information you want to include in the Knowledge Base.
+When we attach a knowledge base to the `BedrockAgentBlueprintsConstruct` it calls the `createAndSyncDataSource` to populate the knowledge base with the data in asset management bucket.
 
 
 #### OpenSearchServerlessHelper
@@ -277,7 +277,7 @@ const helper = new OpenSearchServerlessHelper(stack, 'TestHelper', {
 
 The `BedrockGuardrailsBuilder` construct is a utility class that simplifies the creation of Amazon Bedrock Guardrails. Guardrails are a set of rules and policies that help ensure the safety and compliance of your AI applications. The 
 `BedrockGuardrailsBuilder` allows you to configure various aspects of a Guardrail, such as content filtering, sensitive information handling, topic management, and word policies.
-Once you've built the Guardrail using the `BedrockGuardrailsBuilder` you can associate it with an Amazon Bedrock Agent Blueprint using the `BedrockAgentBlueprintsConstruct`
+After you've built the Guardrail using the `BedrockGuardrailsBuilder` you can associate it with an Amazon Bedrock Agent Blueprint using the `BedrockAgentBlueprintsConstruct`
 
 ```
 const guardrail = guardrailBuilder.build();
@@ -308,7 +308,7 @@ const guardrail = guardrailBuilder.build();
 
 #### Generating a KMS Key
 
-If you want the `BedrockGuardrailsBuilder` to generate a new KMS key for you, you can set the `generateKmsKey` to `true`. Or you can provide your own with `kmsKeyArn`
+If you want the `BedrockGuardrailsBuilder` to generate a new KMS key for you, you can set the `generateKmsKey` to `true`. Or you can provide your own key with `kmsKeyArn`
 
 ```
 const guardrailBuilder = new BedrockGuardrailsBuilder(stack, 'TestGuardrail', {
