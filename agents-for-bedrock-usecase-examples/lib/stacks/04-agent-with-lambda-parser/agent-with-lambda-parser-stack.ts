@@ -1,8 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { BedrockAgentBlueprintsConstruct } from '../../../../agents-for-bedrock-blueprints/constructs/src/main-agent-blueprint-construct';
-import { AgentDefinitionBuilder, PromptConfig_Default, PromptConfig_Override, PromptStateConfig, PromptType } from '../../../../agents-for-bedrock-blueprints/constructs/src/agent-definition-builder-construct';
-import { AgentActionGroup } from '../../../../agents-for-bedrock-blueprints/constructs/src/action-group-configuration-construct'
+import { AgentActionGroup } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentActionGroup'
+import { AgentDefinitionBuilder } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder'
+import { BedrockAgentBlueprintsConstruct } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/BedrockAgentBlueprintsConstruct'
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { join } from 'path';
@@ -11,6 +11,8 @@ import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePr
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { HRAssistDataStack } from '../01-agent-with-function-definitions/hr-assist-data-stack';
 import { customPreprocessingPrompt, customPostProcessingPrompt } from '../../prompt_library/prompts';
+import { readFileSync } from 'fs';
+import { PromptConfig_Override, PromptStateConfig, PromptType } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder';
 
 export class AgentWithCustomLambdaParserStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -26,7 +28,7 @@ export class AgentWithCustomLambdaParserStack extends cdk.Stack {
         // console.log('auroraDatbaseSecretArn:', auroraDatbaseSecretArn);
 
         const managedPolicies = [
-            ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+            // ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
             ManagedPolicy.fromAwsManagedPolicyName('AmazonRDSDataFullAccess'),
         ];
 
@@ -134,10 +136,11 @@ export class AgentWithCustomLambdaParserStack extends cdk.Stack {
             description: 'Actions for getting the number of available vacations days for an employee and confirm new time off',
             actionGroupExecutor: {
                 lambdaDefinition: {
+                    lambdaCode: readFileSync(join(__dirname, '..', '..', 'lambda', '01-agent-with-function-definitions', 'ag-assist-with-vacations-lambda.ts')),
                     lambdaHandler: 'handler',
                     lambdaRuntime: Runtime.NODEJS_18_X,
-                    codeSourceType: 'asset',
-                    fileName: 'agents-for-bedrock-usecase-examples/lib/lambda/01-agent-with-function-definitions/ag-assist-with-vacations-lambda.ts',
+                    // codeSourceType: 'asset',
+                    // fileName: 'agents-for-bedrock-usecase-examples/lib/lambda/01-agent-with-function-definitions/ag-assist-with-vacations-lambda.ts',
                     timeoutInMinutes: 15,
                     environment: {
                         CLUSTER_ARN: auroraClusterArn,

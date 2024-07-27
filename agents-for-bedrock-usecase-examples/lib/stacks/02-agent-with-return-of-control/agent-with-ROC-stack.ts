@@ -1,8 +1,9 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { AgentActionGroup } from '../../../../agents-for-bedrock-blueprints/constructs/src/action-group-configuration-construct'
-import { AgentDefinitionBuilder } from '../../../../agents-for-bedrock-blueprints/constructs/src/agent-definition-builder-construct'
-import { BedrockAgentBlueprintsConstruct } from '../../../../agents-for-bedrock-blueprints/constructs/src/main-agent-blueprint-construct';
+import { AgentActionGroup } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentActionGroup'
+import { AgentDefinitionBuilder } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder'
+import { BedrockAgentBlueprintsConstruct } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/BedrockAgentBlueprintsConstruct'
+
 
 export class AgentWithROCStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {

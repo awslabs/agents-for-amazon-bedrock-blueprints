@@ -1,15 +1,15 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { AgentActionGroup } from '../../../../agents-for-bedrock-blueprints/constructs/src/action-group-configuration-construct'
-import { AgentDefinitionBuilder } from '../../../../agents-for-bedrock-blueprints/constructs/src/agent-definition-builder-construct'
-import { AgentKnowledgeBase } from '../../../../agents-for-bedrock-blueprints/constructs/src/knowledge-base-configuration-construct'
-import { BedrockAgentBlueprintsConstruct } from '../../../../agents-for-bedrock-blueprints/constructs/src/main-agent-blueprint-construct'
-import { BedrockGuardrailsBuilder, FilterType, ManagedWordsTypes, PIIAction, PIIType } from '../../../../agents-for-bedrock-blueprints/constructs/src/guardrails-builder-construct';
-
+import { AgentActionGroup } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentActionGroup'
+import { AgentDefinitionBuilder } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder'
+import { BedrockAgentBlueprintsConstruct } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/BedrockAgentBlueprintsConstruct'
+import { BedrockGuardrailsBuilder, FilterType, ManagedWordsTypes, PIIAction, PIIType } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/BedrockGuardrailsBuilder'
 import * as fs from 'fs';
 import { isAbsolute, join, resolve } from "path";
 import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
+import { readFileSync } from 'fs';
+import { AgentKnowledgeBase } from '../../../../bin/constructs/AgentKnowledgeBase';
 
 export class AgentWithKBandGuardrailsStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -92,10 +92,11 @@ export class AgentWithKBandGuardrailsStack extends cdk.Stack {
             description: 'Actions for getting table booking information, create a new booking or delete an existing booking',
             actionGroupExecutor: {
                 lambdaDefinition: {
+                    lambdaCode: readFileSync(join(__dirname, '..', '..', 'lambda', '01-agent-with-function-definitions', 'ag-table-booking-service.ts')),
                     lambdaHandler: 'handler', 
                     lambdaRuntime: Runtime.NODEJS_18_X,
-                    codeSourceType: 'asset',
-                    fileName: 'agents-for-bedrock-usecase-examples/lib/lambda/03-agent-with-kb-and-guardrails/ag-table-booking-service.ts',
+                    // codeSourceType: 'asset',
+                    // fileName: 'agents-for-bedrock-usecase-examples/lib/lambda/03-agent-with-kb-and-guardrails/ag-table-booking-service.ts',
                     timeoutInMinutes: 4,
                     managedPolicies: managedPolicies,
                 }

@@ -4,7 +4,11 @@ import { RDSDataClient, ExecuteStatementCommand } from "@aws-sdk/client-rds-data
 const rdsClient = new RDSDataClient({});
 const databaseName = 'employeedatabase';
 
-
+interface Parameter {
+    name: string;
+    stringValue?: string;
+    longValue?: number;
+}
 
 function prepareResponse(resultText: string, actionGroup: any, func: any): any {
     // Prepare the response body
@@ -246,7 +250,7 @@ async function reserveVacationTime(employeeId: number, startDate: string, endDat
         const actualQuery = insertVacationCommand.input?.sql;
         if (actualQuery) {
             // Log the actual query that contains the values of the parameter
-            const actualQueryWithValues = actualQuery.replace(/\$\([^\)]+\)/g, (match) => {
+            const actualQueryWithValues = actualQuery.replace(/\$\([^\)]+\)/g, (match: string) => {
                 const parameterName = match.slice(2, -1);
                 const parameterValue = insertVacationCommand.input.parameters?.find(
                     (param) => param.name === parameterName
