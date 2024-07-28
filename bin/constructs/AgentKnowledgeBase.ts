@@ -87,7 +87,7 @@ export class AgentKnowledgeBase extends Construct {
         this.knowledgeBase = this.createKnowledgeBase(props.kbName);
 
         // Setup storageConfigurations
-        const storageConfig = props.storageConfiguration?.type ?? KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS;
+        const storageConfig = props.storageConfiguration?.type ?? KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS; // Default to OpenSearchServerless
         switch (storageConfig) {
         case KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS:
             this.setupOpensearchServerless(props.kbName, region, accountId);
@@ -164,6 +164,15 @@ export class AgentKnowledgeBase extends Construct {
 
         kbRole.addToPolicy(embeddingsAccessPolicyStatement);
 
+        // Added S3 full access to KB role for now; later restrict it to only the S3 bucket where the asset is stored
+        // TODO: Restrict the S3 policy to the buckets where the assets are deployed by calling addS3Permissions
+        kbRole.addManagedPolicy(
+            ManagedPolicy.fromAwsManagedPolicyName(
+                'AmazonS3FullAccess',
+            ),
+        );
+
+
         return kbRole;
     }
 
@@ -214,7 +223,11 @@ export class AgentKnowledgeBase extends Construct {
                     statements: [
                         new PolicyStatement({
                             effect: Effect.ALLOW,
-                            actions: ["bedrock:StartIngestionJob"],
+                            actions: ["bedrock:StartIngestionJob",
+                            "bedrock:DeleteDataSource",    // Delete a data source associated with the knowledgebase
+                            "bedrock:DeleteKnowledgeBase",  // Delete the knowledgebase
+                            "bedrock:GetDataSource",        // Get information about a data source associated with the knowledgebase 
+                            "bedrock:UpdateDataSource"],      // Update a data source associated with the knowledgebase
                             resources: [`arn:aws:bedrock:${Aws.REGION}:${Aws.ACCOUNT_ID}:knowledge-base/${knowledgeBaseId}`],
                         }),
                     ],
@@ -273,7 +286,7 @@ export class AgentKnowledgeBase extends Construct {
             name: `${this.knowledgeBase.name}-DataSource`,
 
             // the properties below are optional
-            dataDeletionPolicy: 'DELETE',
+            dataDeletionPolicy: 'RETAIN',  // Changed to RETAIN since data source deletion upon stack deletion works only when the data deletion policy is set to RETAIN
             description: 'Data source for KB created through Blueprints',
             vectorIngestionConfiguration: {
                 chunkingConfiguration: {

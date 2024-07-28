@@ -8,10 +8,9 @@ const CLIENT_TIMEOUT_MS = 10000;
 const CLIENT_MAX_RETRIES = 5;
 
 const RETRY_CONFIG = {
-    delay: 10000, //10 sec
-    maxTry: 15, // Should wait atleast 2 mins for the permissions to propagate
+    delay: 30000, // 30 sec
+    maxTry: 20, // Should wait at least 10 mins for the permissions to propagate
 };
-
 
 /**
  * Handles the 'Create', 'Update', and 'Delete' events for a custom resource.
@@ -45,7 +44,7 @@ export const onEvent = async (event: OnEventRequest, _context: unknown): Promise
             requestTimeout: CLIENT_TIMEOUT_MS,
         });
 
-        if (event.RequestType == 'Create' || event.RequestType == 'Update') {
+        if (event.RequestType === 'Create' || event.RequestType === 'Update') {
             // Validate permissions to access index
             await retryAsync(
                 async () => {
@@ -56,25 +55,35 @@ export const onEvent = async (event: OnEventRequest, _context: unknown): Promise
                     statusCode = result.statusCode;
                     if (statusCode === 404) {
                         throw new Error('Index not found');
-                    }
-                    else if (statusCode === 200) {
+                    } else if (statusCode === 200) {
                         console.log('Successfully checked index!');
-                    }
-                    else {
+                    } else {
                         throw new Error(`Unknown error while looking for index result opensearch response: ${JSON.stringify(result)}`);
                     }
-
                 },
                 RETRY_CONFIG,
             );
-        }
-        else {
-            return { PhysicalResourceId: 'skip' };
+        } else if (event.RequestType === 'Delete') {
+            // Handle delete event
+            try {
+                const result = await openSearchClient.indices.delete({
+                    index: indexName,
+                });
+                if (result.statusCode === 404) {
+                    console.log('Index not found, considered as deleted');
+                } else {
+                    console.log('Successfully deleted index!');
+                }
+            } catch (error) {
+                console.error(`Error deleting index: ${error}`);
+            }
+            return { PhysicalResourceId: `osindex_${indexName}` };
         }
     } catch (error) {
         console.error(error);
-        throw new Error(`Failed to check for index: ${error}`);
+        throw new Error(`Failed to handle event: ${error}`);
     }
+
     await sleep(5000); // Wait for 5 seconds before returning status
     return {
         PhysicalResourceId: `osindex_${indexName}`,

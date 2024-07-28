@@ -8,7 +8,7 @@ import { BedrockGuardrailsBuilder, FilterType, ManagedWordsTypes, PIIAction, PII
 import * as fs from 'fs';
 import { isAbsolute, join, resolve } from "path";
 import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
-import { readFileSync } from 'fs';
+import { readdirSync, readFileSync } from 'fs';
 import { AgentKnowledgeBase } from '../../../../bin/constructs/AgentKnowledgeBase';
 
 export class AgentWithKBandGuardrailsStack extends cdk.Stack {
@@ -16,7 +16,6 @@ export class AgentWithKBandGuardrailsStack extends cdk.Stack {
         super(scope, id, props);
 
         const managedPolicies = [
-            ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
             ManagedPolicy.fromAwsManagedPolicyName('AmazonDynamoDBFullAccess')
         ];
         
@@ -92,11 +91,9 @@ export class AgentWithKBandGuardrailsStack extends cdk.Stack {
             description: 'Actions for getting table booking information, create a new booking or delete an existing booking',
             actionGroupExecutor: {
                 lambdaDefinition: {
-                    lambdaCode: readFileSync(join(__dirname, '..', '..', 'lambda', '01-agent-with-function-definitions', 'ag-table-booking-service.ts')),
+                    lambdaCode: readFileSync(join(__dirname, '..', '..', 'lambda', '03-agent-with-kb-and-guardrails', 'ag-table-booking-service.ts')),
                     lambdaHandler: 'handler', 
                     lambdaRuntime: Runtime.NODEJS_18_X,
-                    // codeSourceType: 'asset',
-                    // fileName: 'agents-for-bedrock-usecase-examples/lib/lambda/03-agent-with-kb-and-guardrails/ag-table-booking-service.ts',
                     timeoutInMinutes: 4,
                     managedPolicies: managedPolicies,
                 }
@@ -121,14 +118,20 @@ export class AgentWithKBandGuardrailsStack extends cdk.Stack {
             .withTopicConfig("Avoid Religion", "Anything related to religion or religious topics", ['religion', 'faith', 'belief'])
             .build();
 
-        // Read knowledge base files
-        const { fileBuffers } = this.readMenuFiles('../assets/kb_documents');
+        // Define the directory containing asset files
+        const assetDir = join(__dirname, '..', '..', 'assets', 'kb_documents');
+
+        // Read all files in the directory and convert them to buffers
+        const assetFiles = fs.readdirSync(assetDir).map(fileName => {
+            return fs.readFileSync(join(assetDir, fileName));
+        });
+
 
         // Create the knowledge base
         const knowledgeBase = new AgentKnowledgeBase(this, 'BedrockDocs', {
             kbName: 'booking-agent-kb',
             agentInstruction: 'Access the knowledge base when customers ask about the plates in the menu.',
-            assetFiles: fileBuffers
+            assetFiles: assetFiles
         });
 
         // Create the Bedrock Agent Blueprint
@@ -138,31 +141,5 @@ export class AgentWithKBandGuardrailsStack extends cdk.Stack {
             guardrail: guardrail,
             knowledgeBases: [knowledgeBase]
         });
-    }
-
-    // Method to read knowledge base files
-    private readMenuFiles(filePath: string): { fileBuffer?: Buffer, fileBuffers?: Buffer[] } {
-        let resolvedPath: string;
-        resolvedPath = isAbsolute(filePath) ? filePath : join(__dirname, '..', filePath);
-        console.log("Resolved path: ", resolvedPath)
-
-        try {
-            const stats = fs.statSync(resolvedPath);
-
-            if (stats.isFile()) {
-                // If the provided path is a file, read its contents
-                const fileBuffer = fs.readFileSync(resolvedPath);
-                return { fileBuffer };
-            } else if (stats.isDirectory()) {
-                // If the provided path is a directory, read all files in the directory
-                const fileBuffers = fs.readdirSync(resolvedPath)
-                    .map((fileName) => fs.readFileSync(join(resolvedPath, fileName)));
-                return { fileBuffers };
-            }
-        } catch (err) {
-            console.error(`Error reading files from ${resolvedPath}:`, err);
-        }
-
-        return {};
     }
 }

@@ -1,5 +1,5 @@
 import { DynamoDBClient, GetItemCommand, PutItemCommand, DeleteItemCommand, DescribeTableCommand, DeleteItemCommandInput } from "@aws-sdk/client-dynamodb";
-import { v4 as uuidv4 } from "uuid";
+// import { v4 as uuidv4 } from "uuid";
 
 const ddbClient = new DynamoDBClient({});
 const tableName = "BookingTable"; // TODO: Get the table name from Lambda environment variable
@@ -66,7 +66,8 @@ async function getBookingDetails(bookingId: string) {
  */
 async function createBooking(date: string, name: string, hour: string, numGuests: number) {
     try {
-        const bookingId = uuidv4().slice(0, 8);
+        const bookingId = Math.floor(Math.random() * 1e8).toString().padStart(8, '0');
+        // const bookingId = uuidv4().slice(0, 8);
         await ddbClient.send(
             new PutItemCommand({
                 TableName: tableName,
