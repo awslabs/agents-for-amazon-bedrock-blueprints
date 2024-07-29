@@ -1,12 +1,24 @@
 {
-  "name": "agents-for-bedrock-blueprints-construct",
+  "name": "agents-for-amazon-bedrock-blueprints",
+  "description": "A collection of L3 construct for AWS CDK that allows you to create and deploy Bedrock agents and related resources",
   "version": "0.1.0",
-  "bin": {
-    "agents-for-bedrock-blueprints-construct": "bin/agents-for-bedrock-blueprints-construct.js"
+  "license": "MIT-0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aws-samples/agents-for-amazon-bedrock-blueprints.git"
   },
+  "engines": {
+    "node": ">=12"
+  },
+  "author": "Amazon Web Services",
+  "contributors": [
+    {
+      "name": "Shubham Divekar"
+    }
+  ],
   "scripts": {
     "build": "tsc --outdir dist",
-    "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint": "npx eslint . --ext .ts,.tsx",
     "lint-fix": "npx eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "watch": "tsc -w",
     "test": "jest",

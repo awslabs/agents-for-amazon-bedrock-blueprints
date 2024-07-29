@@ -1,4 +1,7 @@
 # Amazon Bedrock Agents Blueprints
+
+[![license](https://img.shields.io/github/license/aws-samples/agents-for-amazon-bedrock-blueprints?color=green)](https://opensource.org/licenses/MIT)
+
 The Agent Blueprints feature aims to address the challenge of simplifying the process of getting started with building agents for Amazon Bedrock Agents
 
 ## Introduction
