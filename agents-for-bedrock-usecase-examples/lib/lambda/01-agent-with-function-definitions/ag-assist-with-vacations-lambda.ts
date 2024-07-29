@@ -363,9 +363,6 @@ export const handler: Handler = async (event: any, context: Context) => {
     const dbCredentialsSecretsStoreArn = process.env.SECRET_ARN
     const dbClusterArn = process.env.CLUSTER_ARN
 
-    // console.log("Recieved cluster ARN:", dbClusterArn);
-    // console.log("Recieved secret ARN:", dbCredentialsSecretsStoreArn);
-    
     // Destructure the required properties from the event object
     const { agent, actionGroup, function: func, parameters = [], messageVersion } = event;
     console.log('function:', func);

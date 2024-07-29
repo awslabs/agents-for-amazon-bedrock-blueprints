@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { HRAssistDataStack } from '../../lib/stacks/01-agent-with-function-definitions/hr-assist-data-stack'
 import { AgentWithROCStack } from '../../lib/stacks/02-agent-with-return-of-control/agent-with-ROC-stack';
+import { VacationAPILambdaStack } from '../../lib/stacks/02-agent-with-return-of-control/vacation-api-lambda-stack';
 
 const permissionObject = {
     /* If you don't specify 'env', this stack will be environment-agnostic.
@@ -16,3 +17,4 @@ const permissionObject = {
 const app = new cdk.App();
 new HRAssistDataStack(app, 'HRAssistDataStack', permissionObject);
 new AgentWithROCStack(app, 'AgentWithROCStack', permissionObject); 
+new VacationAPILambdaStack(app, 'VacationAPILambdaStack', permissionObject);

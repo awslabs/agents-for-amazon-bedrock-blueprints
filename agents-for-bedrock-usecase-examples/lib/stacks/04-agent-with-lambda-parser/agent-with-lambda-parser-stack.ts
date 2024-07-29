@@ -28,7 +28,6 @@ export class AgentWithCustomLambdaParserStack extends cdk.Stack {
         // console.log('auroraDatbaseSecretArn:', auroraDatbaseSecretArn);
 
         const managedPolicies = [
-            // ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
             ManagedPolicy.fromAwsManagedPolicyName('AmazonRDSDataFullAccess'),
         ];
 
