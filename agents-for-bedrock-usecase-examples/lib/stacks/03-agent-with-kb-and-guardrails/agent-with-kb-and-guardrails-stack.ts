@@ -1,12 +1,11 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { AgentActionGroup } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentActionGroup'
-import { AgentDefinitionBuilder } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder'
-import { BedrockAgentBlueprintsConstruct } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/BedrockAgentBlueprintsConstruct'
-import { BedrockGuardrailsBuilder, FilterType, ManagedWordsTypes, PIIAction, PIIType } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/BedrockGuardrailsBuilder'
-import * as fs from 'fs';
-import { isAbsolute, join, resolve } from "path";
+import { AgentActionGroup } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/AgentActionGroup';
+import { AgentDefinitionBuilder } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder';
+import { BedrockAgentBlueprintsConstruct } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/BedrockAgentBlueprintsConstruct';
+import { BedrockGuardrailsBuilder, FilterType, ManagedWordsTypes, PIIAction, PIIType } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/BedrockGuardrailsBuilder';
+import {  join } from "path";
 import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import { readdirSync, readFileSync } from 'fs';
 import { AgentKnowledgeBase } from '../../../../bin/constructs/AgentKnowledgeBase';
@@ -41,7 +40,7 @@ export class AgentWithKBandGuardrailsStack extends cdk.Stack {
                     'type': 'string'
                 }
             }
-        }
+        };
 
         // Define the function schema for creating a new booking
         const createBookingFunction = {
@@ -69,7 +68,7 @@ export class AgentWithKBandGuardrailsStack extends cdk.Stack {
                     'type': 'integer'
                 }
             }
-        }
+        };
 
         // Define the function schema for deleting a booking
         const deleteBookingFunction = {
@@ -82,7 +81,7 @@ export class AgentWithKBandGuardrailsStack extends cdk.Stack {
                     'type': 'string'
                 }
             }
-        }
+        };
 
 
         // Create Agent Action Group
@@ -122,8 +121,8 @@ export class AgentWithKBandGuardrailsStack extends cdk.Stack {
         const assetDir = join(__dirname, '..', '..', 'assets', 'kb_documents');
 
         // Read all files in the directory and convert them to buffers
-        const assetFiles = fs.readdirSync(assetDir).map(fileName => {
-            return fs.readFileSync(join(assetDir, fileName));
+        const assetFiles = readdirSync(assetDir).map(fileName => {
+            return readFileSync(join(assetDir, fileName));
         });
 
 

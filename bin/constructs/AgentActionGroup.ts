@@ -156,7 +156,7 @@ export class AgentActionGroup extends Construct {
             // Inline code
             const functionProps = {
                 runtime: lambdaRuntime,
-                handler: 'index.handler',
+                handler: 'handler',
                 code: Code.fromInline(codeString),
                 role: executionRole,
             };

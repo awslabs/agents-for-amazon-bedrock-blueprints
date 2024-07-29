@@ -7,7 +7,7 @@ export class RestaurantAssistDatabaseStack extends Stack {
         super(scope, id, props);
 
         // Create a new DynamoDB table named 'BookingTable'
-        const table = new TableV2(this, 'BookingTable', {
+        new TableV2(this, 'BookingTable', {
             // Define the partition key as 'booking_id' with type string
             partitionKey: { name: 'booking_id', type: AttributeType.STRING },
             // Set the billing mode to on-demand

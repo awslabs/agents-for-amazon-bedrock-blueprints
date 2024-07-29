@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { HRAssistDataStack } from '../../lib/stacks/01-agent-with-function-definitions/hr-assist-data-stack'
+import { HRAssistDataStack } from '../../lib/stacks/01-agent-with-function-definitions/hr-assist-data-stack';
 import { AgentWithROCStack } from '../../lib/stacks/02-agent-with-return-of-control/agent-with-ROC-stack';
 import { VacationAPILambdaStack } from '../../lib/stacks/02-agent-with-return-of-control/vacation-api-lambda-stack';
 

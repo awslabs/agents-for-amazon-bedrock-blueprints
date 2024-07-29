@@ -25,6 +25,9 @@
       "./node_modules/@types"
     ]
   },
+  "include": [
+    "agents-for-bedrock-usecase-examples/**/*.ts"
+  ],
   "exclude": [
     "node_modules",
     "cdk.out"

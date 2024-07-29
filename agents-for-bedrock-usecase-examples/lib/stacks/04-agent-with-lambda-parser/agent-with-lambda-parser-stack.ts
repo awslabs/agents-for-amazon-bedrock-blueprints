@@ -1,18 +1,17 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { AgentActionGroup } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentActionGroup'
-import { AgentDefinitionBuilder } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder'
-import { BedrockAgentBlueprintsConstruct } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/BedrockAgentBlueprintsConstruct'
+import { AgentActionGroup } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/AgentActionGroup';
+import { AgentDefinitionBuilder, PromptConfig_Override, PromptStateConfig, PromptType } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder';
+import { BedrockAgentBlueprintsConstruct } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/BedrockAgentBlueprintsConstruct';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { join } from 'path';
 import { CustomResource, Duration } from 'aws-cdk-lib';
 import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Provider } from 'aws-cdk-lib/custom-resources';
-import { HRAssistDataStack } from '../01-agent-with-function-definitions/hr-assist-data-stack';
+// import { HRAssistDataStack } from '../01-agent-with-function-definitions/hr-assist-data-stack';
 import { customPreprocessingPrompt, customPostProcessingPrompt } from '../../prompt_library/prompts';
 import { readFileSync } from 'fs';
-import { PromptConfig_Override, PromptStateConfig, PromptType } from '../../../../../agents-for-amazaon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder';
 
 export class AgentWithCustomLambdaParserStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -23,7 +22,7 @@ export class AgentWithCustomLambdaParserStack extends cdk.Stack {
         const auroraClusterArn = cdk.Fn.importValue('AuroraClusterArn');
         // const auroraClusterArn = HRDataStack.AuroraClusterArn
         // console.log('auroraClusterArn:', auroraClusterArn); 
-        const auroraDatbaseSecretArn = cdk.Fn.importValue('AuroraDatabaseSecretArn')
+        const auroraDatbaseSecretArn = cdk.Fn.importValue('AuroraDatabaseSecretArn');
         // const auroraDatbaseSecretArn = HRDataStack.AuroraDatabaseSecretArn
         // console.log('auroraDatbaseSecretArn:', auroraDatbaseSecretArn);
 
@@ -41,26 +40,26 @@ export class AgentWithCustomLambdaParserStack extends cdk.Stack {
             ]
         });
 
-        const { customResource, customParserFunction } = this.createCustomParserResource();
+        const { customParserFunction } = this.createCustomParserResource();
 
         customParserFunction.addPermission('AllowBedrockToInvokeFunction', {
             principal: new ServicePrincipal('bedrock.amazonaws.com'),
             action: 'lambda:InvokeFunction',
         
-        })
+        });
 
         const agentDef = new AgentDefinitionBuilder(this, 'HRAssistantAgent', {})
             .withAgentName('hr-assistant-agent-with-custom-parser')  
             .withInstruction(
-                    'As an HR agent, your role involves assisting employees with a range of HR tasks. ' +
-                    'These include managing vacation requests both present and future, ' +
-                    'reviewing past vacation usage, tracking remaining vacation days, and addressing general HR inquiries. ' +
-                    'You will rely on contextual details provided by users to fulfill their HR needs efficiently. ' +
-                    'When discussing dates, always use the YYYY-MM-DD format unless clarified otherwise by the user. ' +
-                    'If you are unsure about any details, do not hesitate to ask the user for clarification.' +
-                    'Use "you" to address the user directly, making it more personal and actionable.' +
-                    'Make sure the responses are direct, straightforward, and do not contain unnecessary information.'
-                )
+                'As an HR agent, your role involves assisting employees with a range of HR tasks. ' +
+                'These include managing vacation requests both present and future, ' +
+                'reviewing past vacation usage, tracking remaining vacation days, and addressing general HR inquiries. ' +
+                'You will rely on contextual details provided by users to fulfill their HR needs efficiently. ' +
+                'When discussing dates, always use the YYYY-MM-DD format unless clarified otherwise by the user. ' +
+                'If you are unsure about any details, do not hesitate to ask the user for clarification.' +
+                'Use "you" to address the user directly, making it more personal and actionable.' +
+                'Make sure the responses are direct, straightforward, and do not contain unnecessary information.'
+            )
             .withFoundationModel('anthropic.claude-3-sonnet-20240229-v1:0')
             .withPreprocessingPrompt({
                 promptType: PromptType.PRE_PROCESSING,
@@ -104,7 +103,7 @@ export class AgentWithCustomLambdaParserStack extends cdk.Stack {
                     required: true
                 }
             }
-        }
+        };
 
         const reserveVacataionTimeFunction = {
             name: 'reserve_vacation_time',
@@ -126,7 +125,7 @@ export class AgentWithCustomLambdaParserStack extends cdk.Stack {
                     required: true
                 }
             }
-        }
+        };
 
 
         // Create Agent Action Group
@@ -197,15 +196,11 @@ export class AgentWithCustomLambdaParserStack extends cdk.Stack {
             onEventHandler: customParserFunction,
         });
 
-        const customResource = new CustomResource(this, 'CustomParserResource', {
+        new CustomResource(this, 'CustomParserResource', {
             serviceToken: provider.serviceToken,
-            properties: {
-                // Custom resource properties
-                // lambdaArn: customParserFunction.functionArn,
-            }
         });
 
-        return { customResource, customParserFunction };
+        return { customParserFunction };
     }
 
 }
