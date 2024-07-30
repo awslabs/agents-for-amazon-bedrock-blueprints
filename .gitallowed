@@ -1,0 +1,4 @@
+test/setup.ts
+node_modules/
+docs/
+dist/

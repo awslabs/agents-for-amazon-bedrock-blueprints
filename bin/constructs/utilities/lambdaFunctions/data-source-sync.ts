@@ -1,5 +1,10 @@
 import { BedrockAgentClient, StartIngestionJobCommand, StartIngestionJobCommandOutput } from "@aws-sdk/client-bedrock-agent";
 import { OnEventRequest, OnEventResponse } from 'aws-cdk-lib/custom-resources/lib/provider-framework/types';
+import { Logger } from '@aws-lambda-powertools/logger';
+const logger = new Logger({
+    serviceName: 'BedrockAgentsBlueprints',
+    logLevel: "INFO"
+});
 
 /**
  * OnEvent is called to create/update/delete the custom resource. We are only using it
@@ -22,6 +27,7 @@ export const onEvent = async (event: OnEventRequest, _context: unknown): Promise
     let dataSyncResponse: StartIngestionJobCommandOutput | undefined;
     try {
         // Start Knowledgebase and datasource sync job
+        logger.info('Starting ingestion job');
         dataSyncResponse = await brAgentClient.send(
             new StartIngestionJobCommand({
                 knowledgeBaseId,
@@ -35,7 +41,7 @@ export const onEvent = async (event: OnEventRequest, _context: unknown): Promise
                 : 'datasync_failed',
         };
     } catch (err) {
-        console.error(err);
+        logger.error((err as Error).toString());
         return {
             PhysicalResourceId: 'datasync_failed',
             Reason: `Failed to start ingestion job: ${err}`,

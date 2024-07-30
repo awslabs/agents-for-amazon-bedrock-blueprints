@@ -18,6 +18,5 @@
         "no-console": "error",
         "prefer-const": "off",
         "semi": ["error","always"],
-        "no-relative-import-paths/no-relative-import-paths": ["error", { "rootDir": "bin" }]
     }
 }

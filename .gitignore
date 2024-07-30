@@ -9,7 +9,6 @@ cdk.out
 
 # output directories for build artifacts
 dist
-package-lock.json
 yarn.lock
 
 # macOS extraneous file

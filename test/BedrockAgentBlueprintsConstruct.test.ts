@@ -17,7 +17,7 @@ describe('BedrockAgentBlueprintsConstruct', () => {
 
     beforeEach(() => {
         app = new App();
-        stack = new Stack(app, 'TestStack', { env: { account: '123456789012', region: 'us-east-1' } });
+        stack = new Stack(app, 'TestStack', { env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION } });
         agentDef = new AgentDefinitionBuilder(stack, 'NewAgentDef', {})
             .withAgentName('NewFriendlyAgent')
             .withInstruction('nice new fun agent to do great things in code')

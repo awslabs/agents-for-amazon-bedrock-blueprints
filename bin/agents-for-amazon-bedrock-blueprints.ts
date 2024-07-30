@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { App } from 'aws-cdk-lib';
+// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import { DemoTemplateStack } from '../lib/demo_template/DemoTemplate';
 
 const permissionObject = {

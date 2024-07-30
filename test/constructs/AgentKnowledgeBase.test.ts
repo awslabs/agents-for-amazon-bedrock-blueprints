@@ -27,7 +27,7 @@ describe('AgentKnowledgeBase', () => {
             assertFiles: fileBuffers,
             accessRoles: [accessRole],
         };
-        const kb = new AgentKnowledgeBase(stack, 'TestKB', kbProps);
+        new AgentKnowledgeBase(stack, 'TestKB', kbProps);
 
         const template = Template.fromStack(stack);
         template.resourceCountIs('AWS::Bedrock::KnowledgeBase', 1);
@@ -72,10 +72,9 @@ describe('AgentKnowledgeBase', () => {
             accessRoles: [accessRole],
         };
         const kb = new AgentKnowledgeBase(stack, 'TestKB', kbProps);
-        const dataSource = kb.createAndSyncDataSource('arn:aws:s3:::test-bucket', 'test-folder');
+        kb.createAndSyncDataSource('arn:aws:s3:::test-bucket', 'test-folder');
 
         const template = Template.fromStack(stack);
-        console.log(JSON.stringify(template.toJSON()));
         template.resourceCountIs('AWS::Bedrock::DataSource', 1);
         template.hasResourceProperties('AWS::Bedrock::DataSource', {
             Name: 'test-kb-DataSource',

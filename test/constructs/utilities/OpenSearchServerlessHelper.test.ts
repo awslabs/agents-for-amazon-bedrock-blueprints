@@ -17,11 +17,11 @@ describe('OpenSearchServerlessHelper', () => {
     });
 
     test('creates a collection with default configuration', () => {
-        const helper = new OpenSearchServerlessHelper(stack, 'TestHelper', {
+        new OpenSearchServerlessHelper(stack, 'TestHelper', {
             collectionName: 'test-collection',
             accessRoles: [accessRole],
-            region: 'us-east-1',
-            accountId: '123456789012',
+            region: process.env.CDK_DEFAULT_REGION || '',
+            accountId: process.env.CDK_DEFAULT_ACCOUNT || '',
         });
 
         const template = Template.fromStack(stack);
@@ -36,11 +36,11 @@ describe('OpenSearchServerlessHelper', () => {
     });
 
     test('creates a collection with custom configuration', () => {
-        const helper = new OpenSearchServerlessHelper(stack, 'TestHelper', {
+        new OpenSearchServerlessHelper(stack, 'TestHelper', {
             collectionName: 'test-collection',
             accessRoles: [accessRole],
-            region: 'us-east-1',
-            accountId: '123456789012',
+            region: process.env.CDK_DEFAULT_REGION || '',
+            accountId: process.env.CDK_DEFAULT_ACCOUNT || '',
             collectionType: CollectionType.SEARCH,
             indexName: 'custom-index',
             indexConfiguration: {
@@ -70,11 +70,11 @@ describe('OpenSearchServerlessHelper', () => {
     });
 
     test('creates a Lambda execution role with correct permissions', () => {
-        const helper = new OpenSearchServerlessHelper(stack, 'TestHelper', {
+        new OpenSearchServerlessHelper(stack, 'TestHelper', {
             collectionName: 'test-collection',
             accessRoles: [accessRole],
-            region: 'us-east-1',
-            accountId: '123456789012',
+            region: process.env.CDK_DEFAULT_REGION || '',
+            accountId: process.env.CDK_DEFAULT_ACCOUNT || '',
         });
 
         const template = Template.fromStack(stack);
@@ -106,7 +106,7 @@ describe('OpenSearchServerlessHelper', () => {
                             {
                                 Action: 'aoss:APIAccessAll',
                                 Effect: 'Allow',
-                                Resource: 'arn:aws:aoss:us-east-1:123456789012:collection/*',
+                                Resource: 'arn:aws:aoss:us-west-2:123456789012:collection/*',
                             },
                         ],
                         Version: '2012-10-17',

@@ -229,7 +229,7 @@ export class AgentKnowledgeBase extends Construct {
             handler: 'onEvent',
             entry: resolve(__dirname, 'utilities', 'lambdaFunctions', 'data-source-sync.ts'),
             bundling: {
-                nodeModules: ['@opensearch-project/opensearch', 'ts-retry'],
+                nodeModules: ['@opensearch-project/opensearch', 'ts-retry', '@aws-lambda-powertools/logger'],
             },
             role: lambdaExecutionRole,
         });
@@ -412,7 +412,7 @@ export class AgentKnowledgeBase extends Construct {
             handler: 'onEvent',
             entry: resolve(__dirname, 'utilities', 'lambdaFunctions', 'permission-validation.ts'),
             bundling: {
-                nodeModules: ['ts-retry'],
+                nodeModules: ['ts-retry', '@aws-lambda-powertools/logger'],
             },
             role: validationRole,
         });

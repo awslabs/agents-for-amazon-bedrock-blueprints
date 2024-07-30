@@ -79,7 +79,9 @@ export class OpenSearchServerlessHelper extends Construct {
             handler: 'onEvent',
             entry: resolve(__dirname, 'lambdaFunctions', 'aoss-index-creation.ts'),
             bundling: {
-                nodeModules: ['@opensearch-project/opensearch', 'ts-retry'],
+                nodeModules: ['@opensearch-project/opensearch',
+                    'ts-retry',
+                    '@aws-lambda-powertools/logger'],
             },
             role: lambdaExecutionRole,
         });
