@@ -36,7 +36,6 @@ export function generateFileBufferMap(files: Buffer[]) {
 export function writeFilesToDir(dirPath: string, files: FileBufferMap) {
     for (const [fileName, fileBuffer] of Object.entries(files)) {
         const filePath = resolve(dirPath, fileName);
-        console.log(`Writing file to ${filePath}`);
         writeFileSync(filePath, fileBuffer);
     }
 }

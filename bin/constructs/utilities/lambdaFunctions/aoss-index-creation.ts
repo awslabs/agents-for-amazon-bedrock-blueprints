@@ -3,6 +3,11 @@ import { Client } from '@opensearch-project/opensearch';
 import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws';
 import { OnEventRequest, OnEventResponse } from 'aws-cdk-lib/custom-resources/lib/provider-framework/types';
 import { retryAsync } from 'ts-retry';
+import { Logger } from '@aws-lambda-powertools/logger';
+const logger = new Logger({
+    serviceName: 'BedrockAgentsBlueprints',
+    logLevel: "INFO"
+});
 
 const CLIENT_TIMEOUT_MS = 1000;
 const CLIENT_MAX_RETRIES = 5;
@@ -69,7 +74,7 @@ export const onEvent = async (event: OnEventRequest, _context: unknown): Promise
     const { indexName, collectionEndpoint, indexConfiguration } = event.ResourceProperties;
 
     try {
-        console.log("Initiating custom resource for index operations");
+        logger.info("Initiating custom resource for index operations");
         const signerResponse = AwsSigv4Signer({
             region: process.env.AWS_REGION!,
             service: 'aoss',
@@ -83,7 +88,7 @@ export const onEvent = async (event: OnEventRequest, _context: unknown): Promise
             requestTimeout: CLIENT_TIMEOUT_MS,
         });
 
-        console.log("AOSS client creation successful");
+        logger.info("AOSS client creation successful");
 
         if (event.RequestType == 'Create') {
             return await createIndex(openSearchClient, indexName, indexConfiguration);
@@ -95,13 +100,13 @@ export const onEvent = async (event: OnEventRequest, _context: unknown): Promise
             throw new Error(`Unsupported request type: ${event.RequestType}`);
         }
     } catch (error) {
-        console.log(error);
+        logger.error((error as Error).toString());
         throw new Error(`Custom aoss-index operation failed: ${error}`);
     }
 };
 
 const createIndex = async (openSearchClient: Client, indexName: string, indexConfig?: any): Promise<OnEventResponse> => {
-    console.log("AOSS index creation started");
+    logger.info("AOSS index creation started");
 
     // Create index based on default or user provided config.
     const indexConfiguration = indexConfig ?? DEFAULT_INDEX_CONFIG;
@@ -113,7 +118,7 @@ const createIndex = async (openSearchClient: Client, indexName: string, indexCon
                 index: indexName,
                 body: indexConfiguration,
             });
-            console.log('Successfully created index!');
+            logger.info('Successfully created index!');
         },
         CREATE_INDEX_RETRY_CONFIG,
     );
@@ -124,7 +129,7 @@ const createIndex = async (openSearchClient: Client, indexName: string, indexCon
 };
 
 const deleteIndex = async (openSearchClient: Client, indexName: string): Promise<OnEventResponse> => {
-    console.log("AOSS index deletion started");
+    logger.info("AOSS index deletion started");
     await openSearchClient.indices.delete({
         index: indexName,
     });
@@ -135,7 +140,7 @@ const deleteIndex = async (openSearchClient: Client, indexName: string): Promise
 };
 
 const updateIndex = async (openSearchClient: Client, indexName: string, indexConfig?: any): Promise<OnEventResponse> => {
-    console.log("AOSS index update started");
+    logger.info("AOSS index update started");
     // OpenSearch doesn't have an update index function. Hence, delete and create index
     await deleteIndex(openSearchClient, indexName);
     return await createIndex(openSearchClient, indexName, indexConfig);

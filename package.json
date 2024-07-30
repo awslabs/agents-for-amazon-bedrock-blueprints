@@ -43,6 +43,7 @@
     "typescript-eslint": "^7.11.0"
   },
   "peerDependencies": {
+    "@aws-lambda-powertools/logger": "^2.6.0",
     "@aws-sdk/client-bedrock-agent": "^3.567.0",
     "@aws-sdk/client-lambda": "^3.549.0",
     "@aws-sdk/client-secrets-manager": "^3.549.0",

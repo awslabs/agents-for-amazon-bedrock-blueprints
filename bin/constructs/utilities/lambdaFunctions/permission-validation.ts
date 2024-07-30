@@ -3,6 +3,11 @@ import { Client } from '@opensearch-project/opensearch';
 import { AwsSigv4Signer } from '@opensearch-project/opensearch/aws';
 import { OnEventRequest, OnEventResponse } from 'aws-cdk-lib/custom-resources/lib/provider-framework/types';
 import { retryAsync } from 'ts-retry';
+import { Logger } from '@aws-lambda-powertools/logger';
+const logger = new Logger({
+    serviceName: 'BedrockAgentsBlueprints',
+    logLevel: "INFO"
+});
 
 const CLIENT_TIMEOUT_MS = 10000;
 const CLIENT_MAX_RETRIES = 5;
@@ -58,7 +63,7 @@ export const onEvent = async (event: OnEventRequest, _context: unknown): Promise
                         throw new Error('Index not found');
                     }
                     else if (statusCode === 200) {
-                        console.log('Successfully checked index!');
+                        logger.info('Successfully checked index!');
                     }
                     else {
                         throw new Error(`Unknown error while looking for index result opensearch response: ${JSON.stringify(result)}`);
@@ -72,7 +77,7 @@ export const onEvent = async (event: OnEventRequest, _context: unknown): Promise
             return { PhysicalResourceId: 'skip' };
         }
     } catch (error) {
-        console.error(error);
+        logger.error((error as Error).toString());
         throw new Error(`Failed to check for index: ${error}`);
     }
     await sleep(5000); // Wait for 5 seconds before returning status

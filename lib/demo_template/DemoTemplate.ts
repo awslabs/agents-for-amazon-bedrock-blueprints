@@ -1,3 +1,4 @@
+/* eslint-disable no-relative-import-paths/no-relative-import-paths */
 import * as cdk from 'aws-cdk-lib';
 import { readFileSync } from 'fs';
 import { resolve } from "path";

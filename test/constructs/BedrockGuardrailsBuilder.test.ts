@@ -1,4 +1,3 @@
-import { Key } from 'aws-cdk-lib/aws-kms';
 import { App, Stack } from 'aws-cdk-lib';
 import {
     BedrockGuardrailsBuilder,

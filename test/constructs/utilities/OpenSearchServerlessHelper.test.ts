@@ -17,7 +17,7 @@ describe('OpenSearchServerlessHelper', () => {
     });
 
     test('creates a collection with default configuration', () => {
-        const helper = new OpenSearchServerlessHelper(stack, 'TestHelper', {
+        new OpenSearchServerlessHelper(stack, 'TestHelper', {
             collectionName: 'test-collection',
             accessRoles: [accessRole],
             region: 'us-east-1',
@@ -36,7 +36,7 @@ describe('OpenSearchServerlessHelper', () => {
     });
 
     test('creates a collection with custom configuration', () => {
-        const helper = new OpenSearchServerlessHelper(stack, 'TestHelper', {
+        new OpenSearchServerlessHelper(stack, 'TestHelper', {
             collectionName: 'test-collection',
             accessRoles: [accessRole],
             region: 'us-east-1',
@@ -70,7 +70,7 @@ describe('OpenSearchServerlessHelper', () => {
     });
 
     test('creates a Lambda execution role with correct permissions', () => {
-        const helper = new OpenSearchServerlessHelper(stack, 'TestHelper', {
+        new OpenSearchServerlessHelper(stack, 'TestHelper', {
             collectionName: 'test-collection',
             accessRoles: [accessRole],
             region: 'us-east-1',
