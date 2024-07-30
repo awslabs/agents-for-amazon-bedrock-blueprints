@@ -1,14 +1,14 @@
 import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Aws, CustomResource, Duration, aws_bedrock as bedrock } from 'aws-cdk-lib';
 import { Construct } from "constructs";
-import { OpenSearchServerlessHelper, OpenSearchServerlessHelperProps } from "./utilities/OpenSearchServerlessHelper";
-import { AMAZON_BEDROCK_METADATA, AMAZON_BEDROCK_TEXT_CHUNK, KB_DEFAULT_VECTOR_FIELD } from "./utilities/constants";
+import { OpenSearchServerlessHelper, OpenSearchServerlessHelperProps } from "../utilities/OpenSearchServerlessHelper";
+import { AMAZON_BEDROCK_METADATA, AMAZON_BEDROCK_TEXT_CHUNK, KB_DEFAULT_VECTOR_FIELD } from "../utilities/constants";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { resolve } from "path";
 import { Provider } from "aws-cdk-lib/custom-resources";
-import { FileBufferMap, generateFileBufferMap, generateNamesForAOSS } from "./utilities/utils";
-import { BedrockKnowledgeBaseModels } from "./utilities/BedrockKnowledgeBaseModels";
+import { FileBufferMap, generateFileBufferMap, generateNamesForAOSS } from "../utilities/utils";
+import { BedrockKnowledgeBaseModels } from "../utilities/BedrockKnowledgeBaseModels";
 
 export enum KnowledgeBaseStorageConfigurationTypes {
     OPENSEARCH_SERVERLESS = "OPENSEARCH_SERVERLESS",
@@ -238,7 +238,7 @@ export class AgentKnowledgeBase extends Construct {
             timeout: Duration.minutes(15),
             runtime: Runtime.NODEJS_18_X,
             handler: 'onEvent',
-            entry: resolve(__dirname, 'utilities', 'lambdaFunctions', 'data-source-sync.ts'),
+            entry: resolve(__dirname, '..', 'utilities', 'lambdaFunctions', 'data-source-sync.ts'),
             bundling: {
                 nodeModules: ['@opensearch-project/opensearch', 'ts-retry', '@aws-lambda-powertools/logger'],
             },
@@ -421,7 +421,7 @@ export class AgentKnowledgeBase extends Construct {
             timeout: Duration.minutes(15),
             runtime: Runtime.NODEJS_18_X,
             handler: 'onEvent',
-            entry: resolve(__dirname, 'utilities', 'lambdaFunctions', 'permission-validation.ts'),
+            entry: resolve(__dirname, '..', 'utilities', 'lambdaFunctions', 'permission-validation.ts'),
             bundling: {
                 nodeModules: ['ts-retry', '@aws-lambda-powertools/logger'],
             },

@@ -1,7 +1,7 @@
 import { Key } from "aws-cdk-lib/aws-kms";
 import { Construct } from "constructs";
 import { aws_bedrock as bedrock } from 'aws-cdk-lib';
-import { DEFAULT_BLOCKED_INPUT_MESSAGE, DEFAULT_BLOCKED_OUTPUT_MESSAGE } from "./utilities/constants";
+import { DEFAULT_BLOCKED_INPUT_MESSAGE, DEFAULT_BLOCKED_OUTPUT_MESSAGE } from "../utilities/constants";
 
 // Filter Config from https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-bedrock-guardrail-contentfilterconfig.html#cfn-bedrock-guardrail-contentfilterconfig-type
 export enum FilterType {

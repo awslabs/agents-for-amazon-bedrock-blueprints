@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 export const inlineCode = Buffer.from(
     `
@@ -9,5 +9,5 @@ export const inlineCode = Buffer.from(
     };
     `);
 
-const fileBuffer = fs.readFileSync(path.join(__dirname, 'openAPISchema.json'));
+const fileBuffer = readFileSync(join(__dirname, 'openAPISchema.json'));
 export const inlineSchema = fileBuffer.toString('utf8');

@@ -1,6 +1,6 @@
 import { aws_bedrock as bedrock } from 'aws-cdk-lib';
 import { Construct } from "constructs";
-import { USER_INPUT_ACTION_NAME, USER_INPUT_PARENT_SIGNATURE } from './utilities/constants';
+import { USER_INPUT_ACTION_NAME, USER_INPUT_PARENT_SIGNATURE } from '../utilities/constants';
 
 export interface TagsConfig {
     [key: string]: string;

@@ -2,16 +2,16 @@ import { Fn, StackProps, aws_bedrock as bedrock } from 'aws-cdk-lib';
 import { Effect, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import { v4 as uuidv4 } from 'uuid';
-import { AgentActionGroup, SchemaDefinition } from './constructs/AgentActionGroup';
+import { AgentActionGroup, SchemaDefinition } from './AgentActionGroup';
 import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
-import { FileBufferMap, writeFilesToDir } from "./constructs/utilities/utils";
+import { FileBufferMap, writeFilesToDir } from "../utilities/utils";
 
 import { join } from 'path';
 import { mkdtempSync } from 'fs';
 import { tmpdir } from 'os';
-import { AgentKnowledgeBase } from './constructs/AgentKnowledgeBase';
-import { MAX_KB_SUPPORTED } from './constructs/utilities/constants';
+import { AgentKnowledgeBase } from './AgentKnowledgeBase';
+import { MAX_KB_SUPPORTED } from '../utilities/constants';
 
 export interface BedrockAgentBlueprintsConstructProps extends StackProps {
     agentDefinition: bedrock.CfnAgentProps;

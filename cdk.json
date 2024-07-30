@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/agents-for-amazon-bedrock-blueprints.ts",
+  "app": "npx ts-node --prefer-ts-exts bin/main.ts",
   "watch": {
     "include": [
       "**"

@@ -38,7 +38,6 @@ export interface ActionGroupLambdaDefinition {
  * out upon invoking the action or the custom control method for handling the 
  * information elicited from the user.
  */
-
 export interface ActionGroupExecutor {
     lambdaExecutor?: IFunction;
     lambdaDefinition?: ActionGroupLambdaDefinition;

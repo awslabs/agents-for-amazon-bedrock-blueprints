@@ -6,7 +6,7 @@ import {
     ManagedWordsTypes,
     PIIAction,
     PIIType,
-} from '../../bin/constructs/BedrockGuardrailsBuilder';
+} from '../../lib/constructs/BedrockGuardrailsBuilder';
 import { CfnGuardrail } from 'aws-cdk-lib/aws-bedrock';
 import { Template } from 'aws-cdk-lib/assertions';
 
