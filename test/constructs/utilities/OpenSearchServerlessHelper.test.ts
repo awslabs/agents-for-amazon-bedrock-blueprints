@@ -20,8 +20,8 @@ describe('OpenSearchServerlessHelper', () => {
         new OpenSearchServerlessHelper(stack, 'TestHelper', {
             collectionName: 'test-collection',
             accessRoles: [accessRole],
-            region: 'us-east-1',
-            accountId: '123456789012',
+            region: process.env.CDK_DEFAULT_REGION || '',
+            accountId: process.env.CDK_DEFAULT_ACCOUNT || '',
         });
 
         const template = Template.fromStack(stack);
@@ -39,8 +39,8 @@ describe('OpenSearchServerlessHelper', () => {
         new OpenSearchServerlessHelper(stack, 'TestHelper', {
             collectionName: 'test-collection',
             accessRoles: [accessRole],
-            region: 'us-east-1',
-            accountId: '123456789012',
+            region: process.env.CDK_DEFAULT_REGION || '',
+            accountId: process.env.CDK_DEFAULT_ACCOUNT || '',
             collectionType: CollectionType.SEARCH,
             indexName: 'custom-index',
             indexConfiguration: {
@@ -73,8 +73,8 @@ describe('OpenSearchServerlessHelper', () => {
         new OpenSearchServerlessHelper(stack, 'TestHelper', {
             collectionName: 'test-collection',
             accessRoles: [accessRole],
-            region: 'us-east-1',
-            accountId: '123456789012',
+            region: process.env.CDK_DEFAULT_REGION || '',
+            accountId: process.env.CDK_DEFAULT_ACCOUNT || '',
         });
 
         const template = Template.fromStack(stack);

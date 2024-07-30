@@ -4,7 +4,7 @@ import { App, Stack } from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
 import { AgentDefinitionBuilder } from '../bin/constructs/AgentDefinitionBuilder';
 import { AgentActionGroup } from '../bin/constructs/AgentActionGroup';
-import { inlineCode, inlineSchema } from './utils/constants';
+import { inlineCode, inlineSchema, permissionTestObject } from './utils/constants';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { BedrockAgentBlueprintsConstruct } from '../bin/BedrockAgentBlueprintsConstruct';
 import { CfnAgentProps } from 'aws-cdk-lib/aws-bedrock';
@@ -17,7 +17,7 @@ describe('BedrockAgentBlueprintsConstruct', () => {
 
     beforeEach(() => {
         app = new App();
-        stack = new Stack(app, 'TestStack', { env: { account: '123456789012', region: 'us-east-1' } });
+        stack = new Stack(app, 'TestStack', { env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION } });
         agentDef = new AgentDefinitionBuilder(stack, 'NewAgentDef', {})
             .withAgentName('NewFriendlyAgent')
             .withInstruction('nice new fun agent to do great things in code')
