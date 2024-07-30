@@ -106,7 +106,7 @@ describe('OpenSearchServerlessHelper', () => {
                             {
                                 Action: 'aoss:APIAccessAll',
                                 Effect: 'Allow',
-                                Resource: 'arn:aws:aoss:us-east-1:123456789012:collection/*',
+                                Resource: 'arn:aws:aoss:us-west-2:123456789012:collection/*',
                             },
                         ],
                         Version: '2012-10-17',
