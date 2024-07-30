@@ -4,7 +4,7 @@ import { App, Stack } from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
 import { AgentDefinitionBuilder } from '../bin/constructs/AgentDefinitionBuilder';
 import { AgentActionGroup } from '../bin/constructs/AgentActionGroup';
-import { inlineCode, inlineSchema, permissionTestObject } from './utils/constants';
+import { inlineCode, inlineSchema } from './utils/constants';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { BedrockAgentBlueprintsConstruct } from '../bin/BedrockAgentBlueprintsConstruct';
 import { CfnAgentProps } from 'aws-cdk-lib/aws-bedrock';

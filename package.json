@@ -17,6 +17,7 @@
     }
   ],
   "scripts": {
+    "clean": "rm -rf dist cdk.out",
     "build": "tsc --outdir dist",
     "lint": "npx eslint . --ext .ts,.tsx",
     "lint-fix": "npx eslint . --ext .js,.jsx,.ts,.tsx --fix",
@@ -44,10 +45,10 @@
   },
   "peerDependencies": {
     "@aws-lambda-powertools/logger": "^2.6.0",
-    "@aws-sdk/client-bedrock-agent": "^3.567.0",
-    "@aws-sdk/client-lambda": "^3.549.0",
-    "@aws-sdk/client-secrets-manager": "^3.549.0",
-    "@aws-sdk/credential-providers": "^3.549.0",
+    "@aws-sdk/client-bedrock-agent": "^3.529.0",
+    "@aws-sdk/client-lambda": "^3.529.0",
+    "@aws-sdk/client-secrets-manager": "^3.529.0",
+    "@aws-sdk/credential-providers": "^3.529.0",
     "@opensearch-project/opensearch": "^2.6.0",
     "aws-cdk-lib": "^2.140.0",
     "constructs": "^10.0.0",
