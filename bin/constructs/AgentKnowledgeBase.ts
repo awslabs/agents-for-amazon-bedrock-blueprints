@@ -89,11 +89,11 @@ export class AgentKnowledgeBase extends Construct {
         // Setup storageConfigurations
         const storageConfig = props.storageConfiguration?.type ?? KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS; // Default to OpenSearchServerless
         switch (storageConfig) {
-            case KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS:
-                this.setupOpensearchServerless(props.kbName, region, accountId);
-                break;
-            default:
-                throw new Error(`Unsupported storage configuration type: ${storageConfig}`);
+        case KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS:
+            this.setupOpensearchServerless(props.kbName, region, accountId);
+            break;
+        default:
+            throw new Error(`Unsupported storage configuration type: ${storageConfig}`);
         }
     }
 
@@ -164,19 +164,17 @@ export class AgentKnowledgeBase extends Construct {
 
         kbRole.addToPolicy(embeddingsAccessPolicyStatement);
 
-        // Added S3 full access to KB role for now; later restrict it to only the S3 bucket where the asset is stored
-        // TODO: Restrict the S3 policy to the buckets where the assets are deployed by calling addS3Permissions
-        kbRole.addManagedPolicy(
-            ManagedPolicy.fromAwsManagedPolicyName(
-                'AmazonS3FullAccess',
-            ),
-        );
-
-
         return kbRole;
     }
 
-    public addS3Permissions(bucketName: string, accountId: string) {
+    /**
+     * Grants the Knowledge Base permissions to access objects and list contents
+     * in the specified S3 bucket, but only if the request originates from the provided AWS account ID.
+     *
+     * @param bucketName The name of the S3 bucket to grant access to.
+     */
+    public addS3Permissions(bucketName: string) {
+        const accountId = process.env.CDK_DEFAULT_ACCOUNT!;
         const s3AssetsAccessPolicyStatement = new PolicyStatement({
             sid: 'AllowKBToAccessAssets',
             effect: Effect.ALLOW,
