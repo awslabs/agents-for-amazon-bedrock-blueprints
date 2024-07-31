@@ -92,7 +92,9 @@ describe('BedrockAgentBlueprintsConstruct', () => {
         });
         template.hasResourceProperties('AWS::Lambda::Function', {
             Code: {
-                ZipFile: inlineCode.toString('utf8'),
+                S3Bucket: Match.stringLikeRegexp(`cdk-.*`),
+                S3Key: Match.anyValue()
+                  
             },
             Handler: 'index.handler',
             Runtime: 'nodejs18.x',
