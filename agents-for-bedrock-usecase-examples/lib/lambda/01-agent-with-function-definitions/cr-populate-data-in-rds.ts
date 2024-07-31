@@ -18,8 +18,8 @@ export const handler: Handler = async (event: any, context: Context) => {
       } else {
         dbCredentialsSecretsStoreArn = secretArn;
         dbClusterArn = resourceArn;
-        console.log('dbCredentialsSecretsStoreArn', dbCredentialsSecretsStoreArn);
-        console.log('dbClusterArn', dbClusterArn);
+        // console.log('dbCredentialsSecretsStoreArn', dbCredentialsSecretsStoreArn);
+        // console.log('dbClusterArn', dbClusterArn);
         console.log('databaseName', databaseName);
         console.log('Successfully retrieved environment variables');
       };

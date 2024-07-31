@@ -9,14 +9,14 @@ import { join } from "path";
 
 
 
-export class HRAssistDataStack extends Stack {
+export class HRAssistDataStack extends Construct {
     public readonly dbSecret: rds.DatabaseSecret;
     public readonly dbCluster: rds.ServerlessCluster;
     public readonly AuroraClusterArn: string;
     public readonly AuroraDatabaseSecretArn: string;
 
-    constructor(scope: Construct, id: string, props?: StackProps) {
-        super(scope, id, props);
+    constructor(scope: Construct, id: string) {
+        super(scope, id);
 
 
         this.dbSecret = new rds.DatabaseSecret(this, 'AuroraSecret', {

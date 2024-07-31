@@ -9,7 +9,7 @@ import { join } from 'path';
 import { CustomResource, Duration } from 'aws-cdk-lib';
 import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Provider } from 'aws-cdk-lib/custom-resources';
-// import { HRAssistDataStack } from '../01-agent-with-function-definitions/hr-assist-data-stack';
+import { HRAssistDataStack } from '../01-agent-with-function-definitions/hr-assist-data-stack';
 import { customPreprocessingPrompt, customPostProcessingPrompt } from '../../prompt_library/prompts';
 import { readFileSync } from 'fs';
 
@@ -17,13 +17,13 @@ export class AgentWithCustomLambdaParserStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
-        // const HRDataStack = new HRAssistDataStack(this, 'HRAssistDataStack', props);
+        const HRDataStack = new HRAssistDataStack(this, 'HRAssistDataStack');
         
-        const auroraClusterArn = cdk.Fn.importValue('AuroraClusterArn');
-        // const auroraClusterArn = HRDataStack.AuroraClusterArn
-        // console.log('auroraClusterArn:', auroraClusterArn); 
-        const auroraDatbaseSecretArn = cdk.Fn.importValue('AuroraDatabaseSecretArn');
-        // const auroraDatbaseSecretArn = HRDataStack.AuroraDatabaseSecretArn
+        // const auroraClusterArn = cdk.Fn.importValue('AuroraClusterArn');
+        const auroraClusterArn = HRDataStack.AuroraClusterArn;
+        // console.log('auroraClusterArn:', HRDataStack.AuroraClusterArn); 
+        // const auroraDatbaseSecretArn = cdk.Fn.importValue('AuroraDatabaseSecretArn');
+        const auroraDatbaseSecretArn = HRDataStack.AuroraDatabaseSecretArn;
         // console.log('auroraDatbaseSecretArn:', auroraDatbaseSecretArn);
 
         const managedPolicies = [

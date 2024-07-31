@@ -17,5 +17,5 @@ const permissionObject = {
 
 const app = new cdk.App();
 
-new HRAssistDataStack(app, 'HRAssistDataStack', permissionObject);
+// new HRAssistDataStack(app, 'HRAssistDataStack', permissionObject);
 new AgentWithCustomLambdaParserStack(app, 'AgentWithCustomLambdaParserStack', permissionObject);
