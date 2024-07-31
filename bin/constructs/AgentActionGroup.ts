@@ -1,10 +1,9 @@
 import { Construct } from "constructs";
 import { aws_bedrock as bedrock, Duration } from 'aws-cdk-lib';
 import { Code, Function, FunctionProps, IFunction, Runtime } from "aws-cdk-lib/aws-lambda";
-import { Effect, IManagedPolicy, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
-import { extname, join } from "path";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
-import { mkdtempSync, rmdirSync, unlinkSync, writeFileSync } from "fs";
+import { IManagedPolicy, ManagedPolicy, PolicyDocument, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { join } from "path";
+import { mkdtempSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 
 /**
@@ -12,9 +11,8 @@ import { tmpdir } from "os";
  * The constructs will be responsible for permission management.
  */
 export interface ActionGroupLambdaDefinition {
-    // lambdaCode is a Buffer containing the code for the Lambda function. 
-    // If `lamdaCode` is `undefined`, it means that the code is expected to be in a separate file, and the function can proceed with loading the code from the specified asset.
-    lambdaCode: Buffer
+    // lambdaCode is a Buffer containing the code for the Lambda function or inline code represented as a string. 
+    lambdaCode: Buffer | string;
     //lambdaRuntime is the runtime of the Lambda function
     lambdaRuntime: Runtime;
     //lambdaHandler provides the entry point of the Lambda function
@@ -25,7 +23,7 @@ export interface ActionGroupLambdaDefinition {
     environment?: { [key: string]: string; };
     // managedPolicies - managed policies to be attached to the Lambda function's execution role (optional)
     managedPolicies?: IManagedPolicy[];
-    // inlinePolicies - inline policies to be attached to the Lambda function's execution role (optional)
+    // inlinePolicies - inline policies(type: {policyName: string, policy: PolicyDocument} ) to be attached to the Lambda function's execution role (optional)
     inlinePolicies?: { [key: string]: PolicyDocument };
 }
 
@@ -102,24 +100,6 @@ export class AgentActionGroup extends Construct {
 
 
     /**
-     * Utility function to create environment variables for Lambda function
-     * @param environment - Environment variables object
-     * @returns Processed environment variables object
-     */
-    createEnvironmentVariables(environment: { [key: string]: string } | undefined): { [key: string]: string } {
-        if (!environment) {
-            return {};  // If environment is undefined, return an empty object
-        }
-        return Object.keys(environment).reduce((acc, key) => { // If environment is defined, return an object with only the keys that have values
-            if (environment[key] !== undefined) {  // If the value of the key is not undefined, include it in the object
-                acc[key] = environment[key];
-            }
-            return acc;
-        }, {} as { [key: string]: string });
-    }
-
-
-    /**
      * Creates a new AWS Lambda function with the provided code file that contains the business logic for an action group and attaches
      * required permissions. This Lambda function serves as the backend processing unit for the Action Group. 
      * It receives the information that the Bedrock agent elicits from the user during the conversation and performs the necessary actions 
@@ -134,9 +114,8 @@ export class AgentActionGroup extends Construct {
      * @param inlinePolicies - The inline policies to be attached to the Lambda function's execution role.
      * @returns The created Lambda function instance.
      */
-
-    createLambdaFunction(
-        lambdaCode: Buffer,
+    private createLambdaFunction(
+        lambdaCode: Buffer | string,
         lambdaRuntime: Runtime,
         handler: string,
         timeoutInMinutes: number | undefined,
@@ -150,39 +129,31 @@ export class AgentActionGroup extends Construct {
         }
 
         const executionRole = this.createLambdaFunctionExecutionRole(managedPolicies, inlinePolicies);
-        const codeString = lambdaCode.toString();
+        let tempDir: string | undefined;
+        const functionProps: FunctionProps = {
+            runtime: lambdaRuntime,
+            handler,
+            code: lambdaCode instanceof Buffer ? Code.fromAsset(tempDir = this.createTempDirectory(lambdaCode)) : Code.fromInline(lambdaCode),
+            role: executionRole,
+            timeout: timeoutInMinutes ? Duration.minutes(timeoutInMinutes) : Duration.minutes(15),
+            environment,
+        };
 
-        if (codeString.trim().startsWith('exports.handler')) {
-            // Inline code
-            const functionProps = {
-                runtime: lambdaRuntime,
-                handler: 'index.handler',
-                code: Code.fromInline(codeString),
-                role: executionRole,
-            };
-            return new Function(this, 'BedrockLambdaFunction', functionProps);
-        } else {
-            // Asset code
-            const tempDir = mkdtempSync(join(tmpdir(), 'lambda-code-'));
-            const tempFilePath = join(tempDir, 'index.ts');
-            writeFileSync(tempFilePath, lambdaCode);
+        const lambdaFunction = new Function(this, `${this.actionGroupName}LambdaFunction`, functionProps);
 
-            try {
-                const nodejsFunctionProps = {
-                    runtime: lambdaRuntime,
-                    handler: handler,
-                    entry: tempFilePath, // Use the temporary file path as the entry point
-                    role: executionRole,
-                    timeout: Duration.minutes(typeof timeoutInMinutes === 'number' ? timeoutInMinutes : 5),
-                    environment: this.createEnvironmentVariables(environment),
-                };
-                return new NodejsFunction(this, 'ActionGroupExecutionFunc', nodejsFunctionProps);
-            } finally {
-                // Clean up temporary files
-                unlinkSync(tempFilePath);
-                rmdirSync(tempDir);
-            }
+        // Delete the temporary directory if created after creating the Lambda function.
+        if (tempDir) {
+            rmSync(tempDir, { recursive: true });
         }
+
+        return lambdaFunction;
+    }
+
+    private createTempDirectory(lambdaCode: Buffer): string {
+        const tempDir = mkdtempSync(join(tmpdir(), 'lambda-code-'));
+        const tempFilePath = join(tempDir, 'index.ts');
+        writeFileSync(tempFilePath, lambdaCode);
+        return tempDir;
     }
 
 
@@ -197,7 +168,7 @@ export class AgentActionGroup extends Construct {
      * @returns The created IAM role instance.
      */
 
-    createLambdaFunctionExecutionRole(managedPolicies: IManagedPolicy[] = [], inlinePolicies: { [key: string]: PolicyDocument } = {}) {
+    private createLambdaFunctionExecutionRole(managedPolicies: IManagedPolicy[] = [], inlinePolicies: { [key: string]: PolicyDocument } = {}) {
 
         const lambdaRole = new Role(this, 'LambdaRole', {
             assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
@@ -220,7 +191,6 @@ export class AgentActionGroup extends Construct {
      *
      * @param actionGroupExecutor - The action group executor containing the lambda function or custom control.
      */
-
     public setActionExecutor(actionGroupExecutor: ActionGroupExecutor) {
         if (actionGroupExecutor.lambdaExecutor) {
             this.lambdaFunc = actionGroupExecutor.lambdaExecutor;
