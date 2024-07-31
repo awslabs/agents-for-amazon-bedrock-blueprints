@@ -2,6 +2,7 @@ import { Construct } from "constructs";
 import { aws_bedrock as bedrock, Duration } from 'aws-cdk-lib';
 import { Code, Function, FunctionProps, IFunction, Runtime } from "aws-cdk-lib/aws-lambda";
 import { IManagedPolicy, ManagedPolicy, PolicyDocument, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { join } from "path";
 import { mkdtempSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
@@ -11,8 +12,13 @@ import { tmpdir } from "os";
  * The constructs will be responsible for permission management.
  */
 export interface ActionGroupLambdaDefinition {
-    // lambdaCode is a Buffer containing the code for the Lambda function or inline code represented as a string. 
-    lambdaCode: Buffer | string;
+    /**
+     * The code for the Lambda function.
+     *
+     * For Node.js and TypeScript functions, you can provide the code as a `Buffer` object.
+     * For other runtimes (e.g., Python, Java, etc.), provide the code as a `Code` object.
+     */
+    lambdaCode: Buffer | Code;
     //lambdaRuntime is the runtime of the Lambda function
     lambdaRuntime: Runtime;
     //lambdaHandler provides the entry point of the Lambda function
@@ -115,8 +121,8 @@ export class AgentActionGroup extends Construct {
      * @returns The created Lambda function instance.
      */
     private createLambdaFunction(
-        lambdaCode: Buffer | string,
-        lambdaRuntime: Runtime,
+        lambdaCode: Buffer | Code,
+        runtime: Runtime,
         handler: string,
         timeoutInMinutes: number | undefined,
         environment: { [key: string]: string; } | undefined,
@@ -128,22 +134,34 @@ export class AgentActionGroup extends Construct {
             throw new Error('lambdaCode is undefined.');
         }
 
+        let lambdaFunction: IFunction;
         const executionRole = this.createLambdaFunctionExecutionRole(managedPolicies, inlinePolicies);
-        let tempDir: string | undefined;
-        const functionProps: FunctionProps = {
-            runtime: lambdaRuntime,
-            handler,
-            code: lambdaCode instanceof Buffer ? Code.fromAsset(tempDir = this.createTempDirectory(lambdaCode)) : Code.fromInline(lambdaCode),
-            role: executionRole,
-            timeout: timeoutInMinutes ? Duration.minutes(timeoutInMinutes) : Duration.minutes(15),
-            environment,
-        };
+        const timeout = Duration.minutes(typeof timeoutInMinutes === 'number' ? timeoutInMinutes : 15);
 
-        const lambdaFunction = new Function(this, `${this.actionGroupName}LambdaFunction`, functionProps);
+        if (lambdaCode instanceof Buffer) {
+            const tempDir = this.createTempDirectory(lambdaCode);
+            lambdaFunction = new NodejsFunction(this, `${this.actionGroupName}LambdaFunction`, {
+                runtime,
+                handler,
+                entry: join(tempDir, 'index.ts'),
+                role: executionRole,
+                timeout,
+                environment,
+            });
 
-        // Delete the temporary directory if created after creating the Lambda function.
-        if (tempDir) {
+            // Delete the temporary directory if created after creating the Lambda function.
             rmSync(tempDir, { recursive: true });
+
+        } else {
+
+            lambdaFunction = new Function(this, `${this.actionGroupName}LambdaFunction`, {
+                runtime,
+                handler,
+                code: lambdaCode,
+                role: executionRole,
+                timeout,
+                environment,
+            });
         }
 
         return lambdaFunction;
