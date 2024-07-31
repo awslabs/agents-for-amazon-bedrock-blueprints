@@ -21,7 +21,7 @@ export class AgentWithCustomLambdaParserStack extends cdk.Stack {
         
         // const auroraClusterArn = cdk.Fn.importValue('AuroraClusterArn');
         const auroraClusterArn = HRDataStack.AuroraClusterArn;
-        // console.log('auroraClusterArn:', HRDataStack.AuroraClusterArn); 
+        console.log('auroraClusterArn:', HRDataStack.AuroraClusterArn); 
         // const auroraDatbaseSecretArn = cdk.Fn.importValue('AuroraDatabaseSecretArn');
         const auroraDatbaseSecretArn = HRDataStack.AuroraDatabaseSecretArn;
         // console.log('auroraDatbaseSecretArn:', auroraDatbaseSecretArn);

@@ -84,17 +84,20 @@ export class HRAssistDataStack extends Construct {
         // These values are imported in the BedrockAgentWithFunctionDefinitionStack for the Action Group's Lambda function to utilize
         // These outputs are associated with the Aurora Serverless database,
         // and these values will be used as environmental variables in the Lambda function that interacts with the database defined in the BedrockAgentWithFunctionDefinitionStack
-        new CfnOutput(this, 'AuroraClusterArn', {
-            value: this.dbCluster.clusterArn,
-            exportName: 'AuroraClusterArn',
-            description: 'The ARN of the Aurora Serverless cluster',
-        });
+        // new CfnOutput(this, 'AuroraClusterArn', {
+        //     value: this.dbCluster.clusterArn,
+        //     exportName: 'AuroraClusterArn',
+        //     description: 'The ARN of the Aurora Serverless cluster',
+        // });
 
-        new CfnOutput(this, 'AuroraDatabaseSecretArn', {
-            value: this.dbCluster.secret?.secretArn || '',
-            exportName: 'AuroraDatabaseSecretArn',
-            description: 'The ARN of the secret for the Aurora Serverless cluster',
-        });
+        // new CfnOutput(this, 'AuroraDatabaseSecretArn', {
+        //     value: this.dbCluster.secret?.secretArn || '',
+        //     exportName: 'AuroraDatabaseSecretArn',
+        //     description: 'The ARN of the secret for the Aurora Serverless cluster',
+        // });
+        this.AuroraClusterArn = this.dbCluster.clusterArn;
+        this.AuroraDatabaseSecretArn = this.dbSecret.secretArn;
+
 
 
     }

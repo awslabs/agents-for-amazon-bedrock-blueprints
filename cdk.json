@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts agents-for-bedrock-usecase-examples/bin/04-agent-with-lambda-parser/main.ts",
+  "app": "npx ts-node --prefer-ts-exts agents-for-bedrock-usecase-examples/bin/03-agent-with-knowledgebase-and-guardrails/main.ts",
   "watch": {
     "include": [
       "**"
