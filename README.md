@@ -12,7 +12,7 @@ This construct simplifies the process of creating and configuring Bedro
 
 ## Getting Started
 
-The easiest way to get started with Agent Blueprints is to follow our [Getting Started guide](https://awslabs.github.io/agents-for-amazon-bedrock-blueprints/getting-started/).
+The easiest way to get started with Agent Blueprints is to follow our [Getting Started guide](https://awslabs.github.io/agents-for-amazon-bedrock-blueprints/using-constructs/getting-started-with-constructs/).
 
 ## Documentation
 
