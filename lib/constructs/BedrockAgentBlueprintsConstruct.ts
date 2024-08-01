@@ -313,6 +313,8 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
         const logBucket = new Bucket(this, `AgentBlueprintAssetsAccessLogs-${uuidv4().slice(0, 4)}`, {
             encryption: BucketEncryption.S3_MANAGED,
             blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+            enforceSSL: true,
+            versioned: true
         });
 
         return new Bucket(this, `AgentBlueprintAssets-${uuidv4().slice(0, 12)}`, {
