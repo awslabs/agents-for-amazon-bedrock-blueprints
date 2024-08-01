@@ -4,3 +4,7 @@
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+# Development dirs
+/docs
+/test

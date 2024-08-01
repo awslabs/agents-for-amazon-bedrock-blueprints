@@ -1,6 +1,6 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { AgentKnowledgeBase } from '../../bin/constructs/AgentKnowledgeBase';
+import { AgentKnowledgeBase } from '../../lib/constructs/AgentKnowledgeBase';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -36,7 +36,18 @@ describe('AgentKnowledgeBase', () => {
             KnowledgeBaseConfiguration: {
                 Type: 'VECTOR',
                 VectorKnowledgeBaseConfiguration: {
-                    EmbeddingModelArn: 'arn:aws:bedrock:us-west-2::foundation-model/amazon.titan-embed-text-v1',
+                    EmbeddingModelArn: {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:bedrock:",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "::foundation-model/amazon.titan-embed-text-v1"
+                            ]
+                        ]
+                    }
                 },
             },
             StorageConfiguration: {

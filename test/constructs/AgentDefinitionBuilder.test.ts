@@ -1,6 +1,6 @@
 import { App, aws_bedrock as bedrock } from 'aws-cdk-lib';
-import { AgentDefinitionBuilder, PromptType, PromptConfig_Override, PromptConfig_Default, PromptStateConfig } from '../../bin/constructs/AgentDefinitionBuilder';
-import { USER_INPUT_ACTION_NAME, USER_INPUT_PARENT_SIGNATURE } from '../../bin/constructs/utilities/constants';
+import { AgentDefinitionBuilder, PromptType, PromptConfig_Override, PromptConfig_Default, PromptStateConfig } from '../../lib/constructs/AgentDefinitionBuilder';
+import { USER_INPUT_ACTION_NAME, USER_INPUT_PARENT_SIGNATURE } from '../../lib/utilities/constants';
 
 describe('AgentDefinitionBuilder', () => {
     let builder: AgentDefinitionBuilder;

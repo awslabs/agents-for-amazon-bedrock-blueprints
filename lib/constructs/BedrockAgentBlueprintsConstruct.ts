@@ -1,17 +1,17 @@
-import { Fn, StackProps, aws_bedrock as bedrock } from 'aws-cdk-lib';
+import { Fn, Stack, StackProps, aws_bedrock as bedrock } from 'aws-cdk-lib';
 import { Effect, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import { v4 as uuidv4 } from 'uuid';
-import { AgentActionGroup, SchemaDefinition } from './constructs/AgentActionGroup';
+import { AgentActionGroup, SchemaDefinition } from './AgentActionGroup';
 import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
-import { FileBufferMap, writeFilesToDir } from "./constructs/utilities/utils";
+import { FileBufferMap, writeFilesToDir } from "../utilities/utils";
 
 import { join } from 'path';
 import { mkdtempSync } from 'fs';
 import { tmpdir } from 'os';
-import { AgentKnowledgeBase } from './constructs/AgentKnowledgeBase';
-import { MAX_KB_SUPPORTED } from './constructs/utilities/constants';
+import { AgentKnowledgeBase } from './AgentKnowledgeBase';
+import { MAX_KB_SUPPORTED } from '../utilities/constants';
 
 export interface BedrockAgentBlueprintsConstructProps extends StackProps {
     agentDefinition: bedrock.CfnAgentProps;
@@ -25,9 +25,13 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
     public agentDefinition: bedrock.CfnAgentProps;
     public agentServiceRole: Role;
     private assetManagementBucket: Bucket;
+    private accountId: string;
+    private region: string;
     constructor(scope: Construct, id: string, props: BedrockAgentBlueprintsConstructProps) {
         super(scope, id);
         this.agentDefinition = props.agentDefinition;
+        this.accountId = Stack.of(this).account;
+        this.region = Stack.of(this).region;
 
         // Check if we need to setup an S3 bucket to store assets.
         if (this.checkActionsRequireArtifacts(props.actionGroups) || this.checkKBSetupRequired(props.knowledgeBases)) {
@@ -60,14 +64,12 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
      * @returns IAM Role with required permissions.
      */
     private setupIAMRole(): Role {
-        const region = process.env.CDK_DEFAULT_REGION!;
-        const accountId = process.env.CDK_DEFAULT_ACCOUNT!;
         // Setup service role that allows bedrock to assume this role
         const bedrockServiceRole = new Role(this, 'BedrockServiceRole', {
             assumedBy: new ServicePrincipal('bedrock.amazonaws.com', {
                 conditions: {
                     StringEquals: {
-                        'aws:SourceAccount': accountId,
+                        'aws:SourceAccount': this.accountId,
                     },
                 },
             }),
@@ -83,7 +85,7 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
                 effect: Effect.ALLOW,
                 actions: ['bedrock:InvokeModel'],
                 resources: [
-                    `arn:aws:bedrock:${region}::foundation-model/${modelUsed}`,
+                    `arn:aws:bedrock:${this.region}::foundation-model/${modelUsed}`,
                 ],
             })
         );
@@ -121,8 +123,6 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
      * @param knowledgeBaseId - The ID of the Bedrock knowledge base to grant access to.
      */
     private addKBInvocationAccess(knowledgeBaseId: string) {
-        const accountId = process.env.CDK_DEFAULT_ACCOUNT!;
-        const region = process.env.CDK_DEFAULT_REGION!;
 
         // Attach permission to read from KB
         this.agentServiceRole?.addToPolicy(
@@ -130,7 +130,7 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
                 sid: 'QueryAssociatedKnowledgeBases',
                 effect: Effect.ALLOW,
                 actions: ['bedrock:Retrieve', 'bedrock:RetrieveAndGenerate'],
-                resources: [`arn:aws:bedrock:${region}:${accountId}:knowledge-base/${knowledgeBaseId}`],
+                resources: [`arn:aws:bedrock:${this.region}:${this.accountId}:knowledge-base/${knowledgeBaseId}`],
             })
         );
     }
@@ -291,7 +291,6 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
     private addSchemaAccessForAgents(s3ArtifactArn: string) {
         if (!this.agentServiceRole) return; //Nothing to do if role isn't setup by construct.
 
-        const accountId = process.env.CDK_DEFAULT_ACCOUNT!;
         this.agentServiceRole.addToPolicy(
             new PolicyStatement({
                 sid: 'AllowAccessToActionGroupAPISchemas',
@@ -300,7 +299,7 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
                 resources: [s3ArtifactArn],
                 conditions: {
                     StringEquals: {
-                        'aws:ResourceAccount': accountId,
+                        'aws:ResourceAccount': this.accountId,
                     },
                 },
             })
@@ -381,8 +380,6 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
      * @param guardrailID - The ID of the Guardrail to apply.
      */
     private addGuardrailAndKMSEncryptionPolicies(guardrail: bedrock.CfnGuardrail) {
-        const accountId = process.env.CDK_DEFAULT_ACCOUNT!;
-
         // Add necessary permissions to the agent service role
         this.agentServiceRole?.addToPolicy(
             new PolicyStatement({
@@ -403,7 +400,7 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
                     resources: [guardrail.kmsKeyArn],
                     conditions: {
                         StringEquals: {
-                            'aws:ResourceAccount': accountId,
+                            'aws:ResourceAccount': this.accountId,
                         },
                     },
                 })

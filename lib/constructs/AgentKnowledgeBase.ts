@@ -1,14 +1,14 @@
 import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
-import { Aws, CustomResource, Duration, aws_bedrock as bedrock } from 'aws-cdk-lib';
+import { CustomResource, Duration, Stack, aws_bedrock as bedrock } from 'aws-cdk-lib';
 import { Construct } from "constructs";
-import { OpenSearchServerlessHelper, OpenSearchServerlessHelperProps } from "./utilities/OpenSearchServerlessHelper";
-import { AMAZON_BEDROCK_METADATA, AMAZON_BEDROCK_TEXT_CHUNK, KB_DEFAULT_VECTOR_FIELD } from "./utilities/constants";
+import { OpenSearchServerlessHelper, OpenSearchServerlessHelperProps } from "../utilities/OpenSearchServerlessHelper";
+import { AMAZON_BEDROCK_METADATA, AMAZON_BEDROCK_TEXT_CHUNK, KB_DEFAULT_VECTOR_FIELD } from "../utilities/constants";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { resolve } from "path";
 import { Provider } from "aws-cdk-lib/custom-resources";
-import { FileBufferMap, generateFileBufferMap, generateNamesForAOSS } from "./utilities/utils";
-import { BedrockKnowledgeBaseModels } from "./utilities/BedrockKnowledgeBaseModels";
+import { FileBufferMap, generateFileBufferMap, generateNamesForAOSS } from "../utilities/utils";
+import { BedrockKnowledgeBaseModels } from "../utilities/BedrockKnowledgeBaseModels";
 
 export enum KnowledgeBaseStorageConfigurationTypes {
     OPENSEARCH_SERVERLESS = "OPENSEARCH_SERVERLESS",
@@ -65,17 +65,18 @@ export class AgentKnowledgeBase extends Construct {
     public knowledgeBase: bedrock.CfnKnowledgeBase;
     public assetFiles: FileBufferMap;
     public readonly agentInstruction: string;
-    embeddingModel: BedrockKnowledgeBaseModels;
-    kbRole: Role;
+    private embeddingModel: BedrockKnowledgeBaseModels;
+    private kbRole: Role;
+    private accountId: string;
+    private region: string;
 
     constructor(scope: Construct, id: string, props: AgentKnowledgeBaseProps) {
         super(scope, id);
         // Check if user has opted out of creating KB
         if (this.node.tryGetContext("skipKBCreation") === "true") return;
 
-        const region = process.env.CDK_DEFAULT_REGION!;
-        const accountId = process.env.CDK_DEFAULT_ACCOUNT!;
-
+        this.accountId = Stack.of(this).account;
+        this.region = Stack.of(this).region;
 
         this.embeddingModel = props.embeddingModel ?? BedrockKnowledgeBaseModels.TITAN_EMBED_TEXT_V1;
         this.knowledgeBaseName = props.kbName;
@@ -90,7 +91,7 @@ export class AgentKnowledgeBase extends Construct {
         const storageConfig = props.storageConfiguration?.type ?? KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS; // Default to OpenSearchServerless
         switch (storageConfig) {
         case KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS:
-            this.setupOpensearchServerless(props.kbName, region, accountId);
+            this.setupOpensearchServerless(props.kbName, this.region, this.accountId);
             break;
         default:
             throw new Error(`Unsupported storage configuration type: ${storageConfig}`);
@@ -134,7 +135,7 @@ export class AgentKnowledgeBase extends Construct {
                 knowledgeBaseConfiguration: {
                     type: 'VECTOR',
                     vectorKnowledgeBaseConfiguration: {
-                        embeddingModelArn: this.embeddingModel.getArn(),
+                        embeddingModelArn: this.embeddingModel.getArn(this.region),
                     },
                 },
                 name: kbName,
@@ -155,7 +156,7 @@ export class AgentKnowledgeBase extends Construct {
             sid: 'AllowKBToInvokeEmbedding',
             effect: Effect.ALLOW,
             actions: ['bedrock:InvokeModel'],
-            resources: [this.embeddingModel.getArn()],
+            resources: [this.embeddingModel.getArn(this.region)],
         });
 
         const kbRole = new Role(this, 'BedrockKBServiceRole', {
@@ -174,7 +175,6 @@ export class AgentKnowledgeBase extends Construct {
      * @param bucketName The name of the S3 bucket to grant access to.
      */
     public addS3Permissions(bucketName: string) {
-        const accountId = process.env.CDK_DEFAULT_ACCOUNT!;
         const s3AssetsAccessPolicyStatement = new PolicyStatement({
             sid: 'AllowKBToAccessAssets',
             effect: Effect.ALLOW,
@@ -185,7 +185,7 @@ export class AgentKnowledgeBase extends Construct {
             ],
             conditions: {
                 StringEquals: {
-                    'aws:SourceAccount': accountId
+                    'aws:SourceAccount': this.accountId
                 }
             }
         });
@@ -226,7 +226,7 @@ export class AgentKnowledgeBase extends Construct {
                                 "bedrock:DeleteKnowledgeBase",  // Delete the knowledgebase
                                 "bedrock:GetDataSource",        // Get information about a data source associated with the knowledgebase 
                                 "bedrock:UpdateDataSource"],      // Update a data source associated with the knowledgebase
-                            resources: [`arn:aws:bedrock:${Aws.REGION}:${Aws.ACCOUNT_ID}:knowledge-base/${knowledgeBaseId}`],
+                            resources: [`arn:aws:bedrock:${this.region}:${this.accountId}:knowledge-base/${knowledgeBaseId}`],
                         }),
                     ],
                 }),
@@ -238,7 +238,7 @@ export class AgentKnowledgeBase extends Construct {
             timeout: Duration.minutes(15),
             runtime: Runtime.NODEJS_18_X,
             handler: 'onEvent',
-            entry: resolve(__dirname, 'utilities', 'lambdaFunctions', 'data-source-sync.ts'),
+            entry: resolve(__dirname, '..', 'utilities', 'lambdaFunctions', `data-source-sync.js`),
             bundling: {
                 nodeModules: ['@opensearch-project/opensearch', 'ts-retry', '@aws-lambda-powertools/logger'],
             },
@@ -421,7 +421,7 @@ export class AgentKnowledgeBase extends Construct {
             timeout: Duration.minutes(15),
             runtime: Runtime.NODEJS_18_X,
             handler: 'onEvent',
-            entry: resolve(__dirname, 'utilities', 'lambdaFunctions', 'permission-validation.ts'),
+            entry: resolve(__dirname, '..', 'utilities', 'lambdaFunctions', `permission-validation.js`),
             bundling: {
                 nodeModules: ['ts-retry', '@aws-lambda-powertools/logger'],
             },

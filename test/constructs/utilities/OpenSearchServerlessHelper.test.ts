@@ -1,6 +1,6 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { OpenSearchServerlessHelper, CollectionType } from '../../../bin/constructs/utilities/OpenSearchServerlessHelper';
+import { OpenSearchServerlessHelper, CollectionType } from '../../../lib/utilities/OpenSearchServerlessHelper';
 import { Template } from 'aws-cdk-lib/assertions';
 
 describe('OpenSearchServerlessHelper', () => {

@@ -10,8 +10,7 @@ export class BedrockKnowledgeBaseModels {
         this.modelName = modelName;
         this.vectorDimension = vectorDimension;
     }
-    public getArn(): string {
-        const region = process.env.CDK_DEFAULT_REGION!;
+    public getArn(region:string): string {
         return `arn:aws:bedrock:${region}::foundation-model/${this.modelName}`;
     }
 } 

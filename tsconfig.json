@@ -27,6 +27,14 @@
   },
   "exclude": [
     "node_modules",
-    "cdk.out"
+    "cdk.out",
+    "dist",
+    "test",
+    ".git",
+    ".vscode",
+    "cdk.context.json"
+  ],
+  "include": [
+    "lib"
   ]
 }

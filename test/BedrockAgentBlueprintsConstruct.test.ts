@@ -2,13 +2,13 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
-import { AgentDefinitionBuilder } from '../bin/constructs/AgentDefinitionBuilder';
-import { AgentActionGroup } from '../bin/constructs/AgentActionGroup';
+import { AgentDefinitionBuilder } from '../lib/constructs/AgentDefinitionBuilder';
+import { AgentActionGroup } from '../lib/constructs/AgentActionGroup';
 import { inlineCode, inlineSchema } from './utils/constants';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { BedrockAgentBlueprintsConstruct } from '../bin/BedrockAgentBlueprintsConstruct';
+import { BedrockAgentBlueprintsConstruct } from '../lib/constructs/BedrockAgentBlueprintsConstruct';
 import { CfnAgentProps } from 'aws-cdk-lib/aws-bedrock';
-import { BedrockGuardrailsBuilder } from '../bin/constructs/BedrockGuardrailsBuilder';
+import { BedrockGuardrailsBuilder } from '../lib/constructs/BedrockGuardrailsBuilder';
 
 describe('BedrockAgentBlueprintsConstruct', () => {
     let app: App;
@@ -27,7 +27,6 @@ describe('BedrockAgentBlueprintsConstruct', () => {
     test('creates an IAM role when agentResourceRoleArn is not provided', () => {
         new BedrockAgentBlueprintsConstruct(stack, 'TestConstruct', { agentDefinition: agentDef });
         const template = Template.fromStack(stack);
-
         template.resourceCountIs('AWS::IAM::Role', 1);
         template.hasResourceProperties('AWS::IAM::Role', {
             AssumeRolePolicyDocument: {
@@ -40,7 +39,7 @@ describe('BedrockAgentBlueprintsConstruct', () => {
                         },
                         Condition: {
                             StringEquals: {
-                                'aws:SourceAccount': '123456789012',
+                                'aws:SourceAccount': "123456789012"
                             },
                         },
                     },
