@@ -7,7 +7,7 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { resolve } from "path";
 import { Provider } from "aws-cdk-lib/custom-resources";
-import { FileBufferMap, generateFileBufferMap, generateNamesForAOSS, getLambdaFileExtension } from "../utilities/utils";
+import { FileBufferMap, generateFileBufferMap, generateNamesForAOSS } from "../utilities/utils";
 import { BedrockKnowledgeBaseModels } from "../utilities/BedrockKnowledgeBaseModels";
 
 export enum KnowledgeBaseStorageConfigurationTypes {
@@ -238,7 +238,7 @@ export class AgentKnowledgeBase extends Construct {
             timeout: Duration.minutes(15),
             runtime: Runtime.NODEJS_18_X,
             handler: 'onEvent',
-            entry: resolve(__dirname, '..', 'utilities', 'lambdaFunctions', `data-source-sync.${getLambdaFileExtension()}`),
+            entry: resolve(__dirname, '..', 'utilities', 'lambdaFunctions', `data-source-sync.js`),
             bundling: {
                 nodeModules: ['@opensearch-project/opensearch', 'ts-retry', '@aws-lambda-powertools/logger'],
             },
@@ -421,7 +421,7 @@ export class AgentKnowledgeBase extends Construct {
             timeout: Duration.minutes(15),
             runtime: Runtime.NODEJS_18_X,
             handler: 'onEvent',
-            entry: resolve(__dirname, '..', 'utilities', 'lambdaFunctions', `permission-validation.${getLambdaFileExtension()}`),
+            entry: resolve(__dirname, '..', 'utilities', 'lambdaFunctions', `permission-validation.js`),
             bundling: {
                 nodeModules: ['ts-retry', '@aws-lambda-powertools/logger'],
             },

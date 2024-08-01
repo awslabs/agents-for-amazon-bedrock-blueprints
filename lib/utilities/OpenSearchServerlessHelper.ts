@@ -5,7 +5,7 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { resolve } from 'path';
 import { Provider } from "aws-cdk-lib/custom-resources";
-import { generateNamesForAOSS, getLambdaFileExtension } from "./utils";
+import { generateNamesForAOSS } from "./utils";
 
 const defaultIndexName = 'agent-blueprints-kb-default-index';
 
@@ -77,7 +77,7 @@ export class OpenSearchServerlessHelper extends Construct {
             timeout: Duration.minutes(15),
             runtime: Runtime.NODEJS_18_X,
             handler: 'onEvent',
-            entry: resolve(__dirname, 'lambdaFunctions', `aoss-index-creation.${getLambdaFileExtension()}`),
+            entry: resolve(__dirname, 'lambdaFunctions', `aoss-index-creation.js`),
             bundling: {
                 nodeModules: ['@opensearch-project/opensearch',
                     'ts-retry',
