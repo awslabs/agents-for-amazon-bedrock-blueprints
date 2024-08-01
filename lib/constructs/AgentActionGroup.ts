@@ -1,6 +1,6 @@
 import { Construct } from "constructs";
 import { aws_bedrock as bedrock, Duration } from 'aws-cdk-lib';
-import { Code, Function, FunctionProps, IFunction, Runtime } from "aws-cdk-lib/aws-lambda";
+import { Code, Function, IFunction, Runtime } from "aws-cdk-lib/aws-lambda";
 import { IManagedPolicy, ManagedPolicy, PolicyDocument, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { join } from "path";

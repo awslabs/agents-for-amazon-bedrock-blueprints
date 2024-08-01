@@ -27,7 +27,6 @@ describe('BedrockAgentBlueprintsConstruct', () => {
     test('creates an IAM role when agentResourceRoleArn is not provided', () => {
         new BedrockAgentBlueprintsConstruct(stack, 'TestConstruct', { agentDefinition: agentDef });
         const template = Template.fromStack(stack);
-
         template.resourceCountIs('AWS::IAM::Role', 1);
         template.hasResourceProperties('AWS::IAM::Role', {
             AssumeRolePolicyDocument: {
@@ -40,7 +39,7 @@ describe('BedrockAgentBlueprintsConstruct', () => {
                         },
                         Condition: {
                             StringEquals: {
-                                'aws:SourceAccount': '123456789012',
+                                'aws:SourceAccount': "123456789012"
                             },
                         },
                     },

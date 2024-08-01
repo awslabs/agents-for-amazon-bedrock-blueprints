@@ -35,8 +35,14 @@ To send us a pull request, please:
 4. Ensure the following commands pass:
 
 ```
+# Build
+npm run clean
+npm run lint
+npm run build 
+npm run test
+
+# Deployment of basic stack
 cdk synth
-cdk list
 cdk deploy
 ```
 
