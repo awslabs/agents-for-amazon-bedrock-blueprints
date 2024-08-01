@@ -16,7 +16,7 @@ Before you can use the `BedrockAgentBlueprintsConstruct`, ensure that yo
 2. Install the `BedrockAgentBlueprintsConstruct` package:
 
 ```
-npm install @aws-samples/agents-for-amazaon-bedrock-blueprints
+npm install @aws/agents-for-amazaon-bedrock-blueprints
 ```
 
 ## Usage
