@@ -1,12 +1,13 @@
 {
   "name": "@aws/agents-for-amazon-bedrock-blueprints",
   "description": "A collection of L3 construct for AWS CDK that allows you to create and deploy Bedrock agents and related resources",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist/**/*"
   ],
+  "homepage": "https://awslabs.github.io/agents-for-amazon-bedrock-blueprints/",
   "license": "MIT-0",
   "repository": {
     "type": "git",
