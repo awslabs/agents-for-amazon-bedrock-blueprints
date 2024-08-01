@@ -7,6 +7,7 @@ import { join } from "path";
 import { readFileSync } from 'fs'; 
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { HRAssistDataStack } from '../01-agent-with-function-definitions/hr-assist-data-stack';
 
 export class AgentWithFunctionDefinitionStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -65,10 +66,14 @@ export class AgentWithFunctionDefinitionStack extends cdk.Stack {
             }
         };
 
-        
+        const HRDataStack = new HRAssistDataStack(this, 'HRAssistDataStack');
+
         // Import Aurora Cluster and Secret ARN from the HRAssistDataStack
-        const auroraClusterArn = cdk.Fn.importValue('AuroraClusterArn');
-        const auroraDatbaseSecretArn = cdk.Fn.importValue('AuroraDatabaseSecretArn');
+        // const auroraClusterArn = cdk.Fn.importValue('AuroraClusterArn');
+        const auroraClusterArn = HRDataStack.AuroraClusterArn;
+        // const auroraDatbaseSecretArn = cdk.Fn.importValue('AuroraDatabaseSecretArn');
+        const auroraDatbaseSecretArn = HRDataStack.AuroraDatabaseSecretArn;
+
 
         // Allow the Lambda function to access the Aurora Serverless and be able to query the database
         const managedPolicies = [

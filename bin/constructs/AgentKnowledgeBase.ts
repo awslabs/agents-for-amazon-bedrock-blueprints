@@ -125,7 +125,7 @@ export class AgentKnowledgeBase extends Construct {
      *
      * @param kbName - The name of the Knowledge Base.
      * @returns The created Amazon Bedrock CfnKnowledgeBase resource.
-     */ 
+     */
     private createKnowledgeBase(kbName: string) {
         return new bedrock.CfnKnowledgeBase(
             this,
@@ -164,19 +164,17 @@ export class AgentKnowledgeBase extends Construct {
 
         kbRole.addToPolicy(embeddingsAccessPolicyStatement);
 
-        // Added S3 full access to KB role for now; later restrict it to only the S3 bucket where the asset is stored
-        // TODO: Restrict the S3 policy to the buckets where the assets are deployed by calling addS3Permissions
-        kbRole.addManagedPolicy(
-            ManagedPolicy.fromAwsManagedPolicyName(
-                'AmazonS3FullAccess',
-            ),
-        );
-
-
         return kbRole;
     }
 
-    public addS3Permissions(bucketName: string, accountId: string) {
+    /**
+     * Grants the Knowledge Base permissions to access objects and list contents
+     * in the specified S3 bucket, but only if the request originates from the provided AWS account ID.
+     *
+     * @param bucketName The name of the S3 bucket to grant access to.
+     */
+    public addS3Permissions(bucketName: string) {
+        const accountId = process.env.CDK_DEFAULT_ACCOUNT!;
         const s3AssetsAccessPolicyStatement = new PolicyStatement({
             sid: 'AllowKBToAccessAssets',
             effect: Effect.ALLOW,
@@ -187,7 +185,7 @@ export class AgentKnowledgeBase extends Construct {
             ],
             conditions: {
                 StringEquals: {
-                    'aws:SourceAccount': accountId
+                    'aws:ResourceAccount': accountId
                 }
             }
         });
@@ -224,10 +222,10 @@ export class AgentKnowledgeBase extends Construct {
                         new PolicyStatement({
                             effect: Effect.ALLOW,
                             actions: ["bedrock:StartIngestionJob",
-                            "bedrock:DeleteDataSource",    // Delete a data source associated with the knowledgebase
-                            "bedrock:DeleteKnowledgeBase",  // Delete the knowledgebase
-                            "bedrock:GetDataSource",        // Get information about a data source associated with the knowledgebase 
-                            "bedrock:UpdateDataSource"],      // Update a data source associated with the knowledgebase
+                                "bedrock:DeleteDataSource",    // Delete a data source associated with the knowledgebase
+                                "bedrock:DeleteKnowledgeBase",  // Delete the knowledgebase
+                                "bedrock:GetDataSource",        // Get information about a data source associated with the knowledgebase 
+                                "bedrock:UpdateDataSource"],      // Update a data source associated with the knowledgebase
                             resources: [`arn:aws:bedrock:${Aws.REGION}:${Aws.ACCOUNT_ID}:knowledge-base/${knowledgeBaseId}`],
                         }),
                     ],
@@ -242,7 +240,7 @@ export class AgentKnowledgeBase extends Construct {
             handler: 'onEvent',
             entry: resolve(__dirname, 'utilities', 'lambdaFunctions', 'data-source-sync.ts'),
             bundling: {
-                nodeModules: ['@opensearch-project/opensearch', 'ts-retry'],
+                nodeModules: ['@opensearch-project/opensearch', 'ts-retry', '@aws-lambda-powertools/logger'],
             },
             role: lambdaExecutionRole,
         });
@@ -425,7 +423,7 @@ export class AgentKnowledgeBase extends Construct {
             handler: 'onEvent',
             entry: resolve(__dirname, 'utilities', 'lambdaFunctions', 'permission-validation.ts'),
             bundling: {
-                nodeModules: ['ts-retry'],
+                nodeModules: ['ts-retry', '@aws-lambda-powertools/logger'],
             },
             role: validationRole,
         });
