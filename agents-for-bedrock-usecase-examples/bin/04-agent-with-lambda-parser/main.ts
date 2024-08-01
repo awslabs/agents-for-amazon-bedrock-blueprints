@@ -2,7 +2,7 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { AgentWithCustomLambdaParserStack } from '../../lib/stacks/04-agent-with-lambda-parser/agent-with-lambda-parser-stack';
-import { HRAssistDataStack } from '../../lib/stacks/01-agent-with-function-definitions/hr-assist-data-stack'
+// import { HRAssistDataStack } from '../../lib/stacks/01-agent-with-function-definitions/hr-assist-data-stack'
 
 const permissionObject = {
     /* If you don't specify 'env', this stack will be environment-agnostic.

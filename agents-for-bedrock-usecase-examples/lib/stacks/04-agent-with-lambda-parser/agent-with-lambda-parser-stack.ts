@@ -1,4 +1,4 @@
-import * as cdk from 'aws-cdk-lib';
+import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { AgentActionGroup } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/AgentActionGroup';
 import { AgentDefinitionBuilder, PromptConfig_Override, PromptStateConfig, PromptType } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder';
@@ -9,22 +9,17 @@ import { join } from 'path';
 import { CustomResource, Duration } from 'aws-cdk-lib';
 import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Provider } from 'aws-cdk-lib/custom-resources';
-import { HRAssistDataStack } from '../01-agent-with-function-definitions/hr-assist-data-stack';
+import { RDSDatabaseForAgentWithLP } from '../04-agent-with-lambda-parser/rds-database-lp-construct';
 import { customPreprocessingPrompt, customPostProcessingPrompt } from '../../prompt_library/prompts';
 import { readFileSync } from 'fs';
 
-export class AgentWithCustomLambdaParserStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+export class AgentWithCustomLambdaParserStack extends Stack {
+    constructor(scope: Construct, id: string, props?: StackProps) {
         super(scope, id, props);
 
-        const HRDataStack = new HRAssistDataStack(this, 'HRAssistDataStack');
-        
-        // const auroraClusterArn = cdk.Fn.importValue('AuroraClusterArn');
-        const auroraClusterArn = HRDataStack.AuroraClusterArn;
-        console.log('auroraClusterArn:', HRDataStack.AuroraClusterArn); 
-        // const auroraDatbaseSecretArn = cdk.Fn.importValue('AuroraDatabaseSecretArn');
-        const auroraDatbaseSecretArn = HRDataStack.AuroraDatabaseSecretArn;
-        // console.log('auroraDatbaseSecretArn:', auroraDatbaseSecretArn);
+        const rdsDatabase = new RDSDatabaseForAgentWithLP(this, 'RDSDatabaseForAgentWithLP');
+        const auroraClusterArn = rdsDatabase.AuroraClusterArn;
+        const auroraDatbaseSecretArn = rdsDatabase.AuroraDatabaseSecretArn;
 
         const managedPolicies = [
             ManagedPolicy.fromAwsManagedPolicyName('AmazonRDSDataFullAccess'),

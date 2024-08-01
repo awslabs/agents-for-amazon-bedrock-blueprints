@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { HRAssistDataStack } from '../../lib/stacks/01-agent-with-function-definitions/hr-assist-data-stack'
+// import { HRAssistDataStack } from '../../lib/stacks/01-agent-with-function-definitions/hr-assist-data-stack'
 import { AgentWithFunctionDefinitionStack } from '../../lib/stacks/01-agent-with-function-definitions/agent-with-function-definition-stack';
 
 const permissionObject = {

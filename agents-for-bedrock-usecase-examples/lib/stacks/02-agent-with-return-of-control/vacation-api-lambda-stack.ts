@@ -3,14 +3,22 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import { join } from 'path';
 import { Effect, ManagedPolicy, Policy, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { Stack, aws_lambda, Duration, StackProps, Fn, CfnOutput } from 'aws-cdk-lib';
+import { aws_lambda, Duration, CfnOutput } from 'aws-cdk-lib';
+import { RDSDatabaseForAgentWithROC } from '../02-agent-with-return-of-control/rds-database-roc-construct';
 
-export class VacationAPILambdaStack extends Stack {
-    constructor(scope: Construct, id: string, props?: StackProps) {
-        super(scope, id, props);
 
-        const auroraClusterArn = Fn.importValue('AuroraClusterArn');
-        const auroraDatbaseSecretArn = Fn.importValue('AuroraDatabaseSecretArn')
+// export class VacationAPILambdaStack extends Stack {
+export class VacationAPILambdaSetup extends Construct {
+
+    constructor(scope: Construct, id: string) {
+        super(scope, id);
+
+        // const auroraClusterArn = Fn.importValue('AuroraClusterArn');
+        // const auroraDatbaseSecretArn = Fn.importValue('AuroraDatabaseSecretArn')
+
+        const rdsDatabase = new RDSDatabaseForAgentWithROC(this, 'RDSDatabaseForAgentWithFD');
+        const auroraClusterArn = rdsDatabase.AuroraClusterArn;
+        const auroraDatbaseSecretArn = rdsDatabase.AuroraDatabaseSecretArn;
 
         // Define the Lambda function
         const vacationFunction = new NodejsFunction(this, 'VacationFunction', {

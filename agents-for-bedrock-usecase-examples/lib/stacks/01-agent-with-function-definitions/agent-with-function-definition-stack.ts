@@ -1,16 +1,15 @@
-import * as cdk from 'aws-cdk-lib';
+import { Stack, StackProps } from 'aws-cdk-lib'; 
 import { Construct } from 'constructs';
-import { AgentActionGroup } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/AgentActionGroup';
-import { AgentDefinitionBuilder } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder';
-import { BedrockAgentBlueprintsConstruct } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/BedrockAgentBlueprintsConstruct';
 import { join } from "path";
 import { readFileSync } from 'fs'; 
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { HRAssistDataStack } from '../01-agent-with-function-definitions/hr-assist-data-stack';
+import { RDSDatabaseForAgentWithFD } from '../01-agent-with-function-definitions/rds-database-fd-construct';
+import {BedrockAgentBlueprintsConstruct, AgentDefinitionBuilder, AgentActionGroup} from '@aws/agents-for-amazon-bedrock-blueprints';
 
-export class AgentWithFunctionDefinitionStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+
+export class AgentWithFunctionDefinitionStack extends Stack {
+    constructor(scope: Construct, id: string, props?: StackProps) {
         super(scope, id, props);
 
         // Define the Agent
@@ -20,10 +19,10 @@ export class AgentWithFunctionDefinitionStack extends cdk.Stack {
                 'As an HR agent, your role involves assisting employees with a range of HR tasks. ' +
                 'These include managing vacation requests both present and future, ' +
                 'reviewing past vacation usage, tracking remaining vacation days, and addressing general HR inquiries. ' +
-                'You will rely on contextual details provided by users to fulfill their HR needs efficiently. ' +
-                'When discussing dates, always use the YYYY-MM-DD format unless clarified otherwise by the user. ' +
-                'If you are unsure about any details, do not hesitate to ask the user for clarification.' +
-                'Use "you" to address the user directly, making it more personal and actionable.' +
+                'You will rely on contextual details provided by employees to fulfill their HR needs efficiently. ' +
+                'When discussing dates, always use the YYYY-MM-DD format unless clarified otherwise by the employee. ' +
+                'If you are unsure about any details, do not hesitate to ask the employee for clarification.' +
+                'Use "you" to address the employee directly, making it more personal and actionable.' +
                 'Make sure the responses are direct, straightforward, and do not contain unnecessary information.'
             )
             .withFoundationModel('anthropic.claude-3-sonnet-20240229-v1:0')
@@ -66,18 +65,12 @@ export class AgentWithFunctionDefinitionStack extends cdk.Stack {
             }
         };
 
-        const HRDataStack = new HRAssistDataStack(this, 'HRAssistDataStack');
-
-        // Import Aurora Cluster and Secret ARN from the HRAssistDataStack
-        // const auroraClusterArn = cdk.Fn.importValue('AuroraClusterArn');
-        const auroraClusterArn = HRDataStack.AuroraClusterArn;
-        // const auroraDatbaseSecretArn = cdk.Fn.importValue('AuroraDatabaseSecretArn');
-        const auroraDatbaseSecretArn = HRDataStack.AuroraDatabaseSecretArn;
-
+        const rdsDatabase = new RDSDatabaseForAgentWithFD(this, 'RDSDatabaseForAgentWithFD');
+        const auroraClusterArn = rdsDatabase.AuroraClusterArn;
+        const auroraDatbaseSecretArn = rdsDatabase.AuroraDatabaseSecretArn;
 
         // Allow the Lambda function to access the Aurora Serverless and be able to query the database
         const managedPolicies = [
-            // ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
             ManagedPolicy.fromAwsManagedPolicyName('AmazonRDSDataFullAccess'),
         ];
 

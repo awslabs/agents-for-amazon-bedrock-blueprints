@@ -1,9 +1,11 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { AgentActionGroup } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/AgentActionGroup';
-import { AgentDefinitionBuilder } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder';
-import { BedrockAgentBlueprintsConstruct } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/BedrockAgentBlueprintsConstruct';
+// import { AgentActionGroup } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/AgentActionGroup';
+// import { AgentDefinitionBuilder } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/constructs/AgentDefinitionBuilder';
+// import { BedrockAgentBlueprintsConstruct } from '../../../../../agents-for-amazon-bedrock-blueprints/bin/BedrockAgentBlueprintsConstruct';
+import { VacationAPILambdaSetup } from '../02-agent-with-return-of-control/vacation-api-lambda-stack';
 
+import {BedrockAgentBlueprintsConstruct, AgentDefinitionBuilder, AgentActionGroup} from '@aws/agents-for-amazon-bedrock-blueprints';
 
 export class AgentWithROCStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -16,10 +18,10 @@ export class AgentWithROCStack extends cdk.Stack {
                 'As an HR agent, your role involves assisting employees with a range of HR tasks. ' +
                 'These include managing vacation requests both present and future, ' +
                 'reviewing past vacation usage, tracking remaining vacation days, and addressing general HR inquiries. ' +
-                'You will rely on contextual details provided by users to fulfill their HR needs efficiently. ' +
-                'When discussing dates, always use the YYYY-MM-DD format unless clarified otherwise by the user. ' +
-                'If you are unsure about any details, do not hesitate to ask the user for clarification.' +
-                'Use "you" to address the user directly, making it more personal and actionable.' +
+                'You will rely on contextual details provided by employees to fulfill their HR needs efficiently. ' +
+                'When discussing dates, always use the YYYY-MM-DD format unless clarified otherwise by the employee. ' +
+                'If you are unsure about any details, do not hesitate to ask the employee for clarification.' +
+                'Use "you" to address the employee directly, making it more personal and actionable.' +
                 'Make sure the responses are direct, straightforward, and do not contain unnecessary information.'
             )
             .withFoundationModel('anthropic.claude-3-sonnet-20240229-v1:0')
@@ -81,6 +83,10 @@ export class AgentWithROCStack extends cdk.Stack {
             agentDefinition: agentDef,
             actionGroups: [hrAssistanceAction],
         });
+
+
+        new VacationAPILambdaSetup(this, 'VacationAPILambdaSetup');
+    
     }
 }
 
