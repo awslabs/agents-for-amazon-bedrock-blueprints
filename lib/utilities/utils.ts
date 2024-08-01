@@ -53,3 +53,18 @@ export function generateNamesForAOSS(resourceName: string, suffix: string) {
     const maxResourceNameLength = MAX_ALLOWED_NAME_LENGTH - suffix.length - 1; // Subtracts an additional 1 to account for the hyphen between resourceName and suffix.
     return `${resourceName.slice(0, maxResourceNameLength)}-${suffix}`.toLowerCase().replace(/[^a-z0-9-]/g, '');  // Replaces any characters that do not match [a-z0-9-] with an empty string.
 }
+
+
+/**
+ * Returns the file extension for Lambda function files. As packaging transforms code to js files.
+ * Returns 'ts' for TypeScript files in test environment,
+ * 'js' for JavaScript files in production environment.
+ */
+export function getLambdaFileExtension() {
+    const isTestEnvironment = process.env.TEST_NODE_ENV === 'test';
+    if (isTestEnvironment) {
+        return 'ts';
+    } else {
+        return 'js';
+    }
+}

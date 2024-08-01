@@ -3,6 +3,9 @@ import * as cdk from 'aws-cdk-lib';
 import { BedrockAgentBlueprintsConstruct } from '../lib/constructs/BedrockAgentBlueprintsConstruct';
 import { AgentDefinitionBuilder } from '../lib/constructs/AgentDefinitionBuilder';
 
+// Since we are not using the transpiled version of source use test env
+process.env.TEST_NODE_ENV = 'test';
+
 const app = new cdk.App();
 
 const props = { 
