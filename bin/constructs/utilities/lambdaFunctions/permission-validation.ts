@@ -68,6 +68,31 @@ export const onEvent = async (event: OnEventRequest, _context: unknown): Promise
                 },
                 RETRY_CONFIG,
             );
+            //Validate permissions to use index
+            await retryAsync(
+                async () => {
+                    let statusCode: null | number = 404;
+                    const openSearchQuery = {
+                        query: {
+                            match_all: {}
+                        },
+                        size: 1 // Limit the number of results to 1
+                    };
+                    let result = await openSearchClient.search({
+                        index: indexName,
+                        body: openSearchQuery
+                    });
+                    statusCode = result.statusCode;
+                    if (statusCode === 404) {
+                        throw new Error('Index not accesible');
+                    } else if (statusCode === 200) {
+                        logger.info('Successfully queried index!');
+                    } else {
+                        throw new Error(`Unknown error while querying index in opensearch response: ${JSON.stringify(result)}`);
+                    }
+                },
+                RETRY_CONFIG,
+            );
         } else if (event.RequestType === 'Delete') {
             // Handle delete event
             try {
