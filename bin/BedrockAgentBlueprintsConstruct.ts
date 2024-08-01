@@ -34,6 +34,12 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
             this.assetManagementBucket = this.setupS3Bucket();
         }
 
+        // Ensure the role is created before associating action groups, knowledge bases, and guardrails.
+        // Check if role is provided else create a role
+        if (!this.agentDefinition.agentResourceRoleArn) {
+            this.agentServiceRole = this.setupIAMRole();
+        }
+
         this.associateActionGroupInfo(props.actionGroups);
         this.associateKnowledgeBaseInfo(props.knowledgeBases);
         this.associateGuardrailInfo(props.guardrail);
@@ -46,10 +52,6 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
     /** Agent functions */
 
     private createBedrockAgent() {
-        // Check if role is provided else create a role
-        if (!this.agentDefinition.agentResourceRoleArn) {
-            this.agentServiceRole = this.setupIAMRole();
-        }
         this.agent = new bedrock.CfnAgent(this, `AgentBlueprint-${this.agentDefinition.agentName}`, this.agentDefinition);
     }
 
@@ -159,6 +161,11 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
             if (!kb.assetFiles) throw new Error(`No asset files were provided for KnowledgeBase: ${kb.knowledgeBaseName}`);
 
             const deploymentInfo = this.deployAssetsToBucket(kb.assetFiles, kb.knowledgeBaseName);
+
+            // Add permissions to the KB role to access the assets
+            kb.addS3Permissions(deploymentInfo.deployedBucket.bucketName);
+
+            // Create and synchronize dataSource.
             kb.createAndSyncDataSource(deploymentInfo.deployedBucket.bucketArn, kb.knowledgeBaseName);
             kbDefinitions.push({
                 knowledgeBaseId: kb.knowledgeBase.attrKnowledgeBaseId,
@@ -369,6 +376,42 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
     /** Guardrails functions */
 
     /**
+     * Adds the necessary permissions to the agent service role to allow it to apply the specified Guardrail.
+     *
+     * @param guardrailID - The ID of the Guardrail to apply.
+     */
+    private addGuardrailAndKMSEncryptionPolicies(guardrail: bedrock.CfnGuardrail) {
+        const accountId = process.env.CDK_DEFAULT_ACCOUNT!;
+
+        // Add necessary permissions to the agent service role
+        this.agentServiceRole?.addToPolicy(
+            new PolicyStatement({
+                sid: 'AllowToApplyGuardrail',
+                effect: Effect.ALLOW,
+                actions: ['bedrock:ApplyGuardrail'],
+                resources: [guardrail.attrGuardrailArn],
+            })
+        );
+
+        // Add necessary permissions to the agent service role to allow KMS encryption key decryption
+        if(guardrail.kmsKeyArn) {
+            this.agentServiceRole?.addToPolicy(
+                new PolicyStatement({
+                    sid: 'AllowKMSEncryptionKeyDecryption',
+                    effect: Effect.ALLOW,
+                    actions: ['kms:Decrypt'],
+                    resources: [guardrail.kmsKeyArn],
+                    conditions: {
+                        StringEquals: {
+                            'aws:ResourceAccount': accountId,
+                        },
+                    },
+                })
+            );
+        }
+    }
+
+    /**
      * Associates the Guardrail information with the agent definition.
      *
      * @param guardrail - The Guardrail resource object.
@@ -378,6 +421,9 @@ export class BedrockAgentBlueprintsConstruct extends Construct {
      */
     private associateGuardrailInfo(guardrail: bedrock.CfnGuardrail | undefined) {
         if (!guardrail) return;
+
+        // Add necessary permissions to the agent service role to allow it to apply the specified Guardrail
+        this.addGuardrailAndKMSEncryptionPolicies(guardrail);
 
         this.agentDefinition = {
             ...this.agentDefinition,

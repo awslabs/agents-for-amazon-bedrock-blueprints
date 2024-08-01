@@ -87,7 +87,7 @@ export class AgentKnowledgeBase extends Construct {
         this.knowledgeBase = this.createKnowledgeBase(props.kbName);
 
         // Setup storageConfigurations
-        const storageConfig = props.storageConfiguration?.type ?? KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS;
+        const storageConfig = props.storageConfiguration?.type ?? KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS; // Default to OpenSearchServerless
         switch (storageConfig) {
         case KnowledgeBaseStorageConfigurationTypes.OPENSEARCH_SERVERLESS:
             this.setupOpensearchServerless(props.kbName, region, accountId);
@@ -125,7 +125,7 @@ export class AgentKnowledgeBase extends Construct {
      *
      * @param kbName - The name of the Knowledge Base.
      * @returns The created Amazon Bedrock CfnKnowledgeBase resource.
-     */ 
+     */
     private createKnowledgeBase(kbName: string) {
         return new bedrock.CfnKnowledgeBase(
             this,
@@ -167,7 +167,14 @@ export class AgentKnowledgeBase extends Construct {
         return kbRole;
     }
 
-    public addS3Permissions(bucketName: string, accountId: string) {
+    /**
+     * Grants the Knowledge Base permissions to access objects and list contents
+     * in the specified S3 bucket, but only if the request originates from the provided AWS account ID.
+     *
+     * @param bucketName The name of the S3 bucket to grant access to.
+     */
+    public addS3Permissions(bucketName: string) {
+        const accountId = process.env.CDK_DEFAULT_ACCOUNT!;
         const s3AssetsAccessPolicyStatement = new PolicyStatement({
             sid: 'AllowKBToAccessAssets',
             effect: Effect.ALLOW,
@@ -214,7 +221,11 @@ export class AgentKnowledgeBase extends Construct {
                     statements: [
                         new PolicyStatement({
                             effect: Effect.ALLOW,
-                            actions: ["bedrock:StartIngestionJob"],
+                            actions: ["bedrock:StartIngestionJob",
+                                "bedrock:DeleteDataSource",    // Delete a data source associated with the knowledgebase
+                                "bedrock:DeleteKnowledgeBase",  // Delete the knowledgebase
+                                "bedrock:GetDataSource",        // Get information about a data source associated with the knowledgebase 
+                                "bedrock:UpdateDataSource"],      // Update a data source associated with the knowledgebase
                             resources: [`arn:aws:bedrock:${Aws.REGION}:${Aws.ACCOUNT_ID}:knowledge-base/${knowledgeBaseId}`],
                         }),
                     ],
@@ -273,7 +284,7 @@ export class AgentKnowledgeBase extends Construct {
             name: `${this.knowledgeBase.name}-DataSource`,
 
             // the properties below are optional
-            dataDeletionPolicy: 'DELETE',
+            dataDeletionPolicy: 'RETAIN',  // Changed to RETAIN since data source deletion upon stack deletion works only when the data deletion policy is set to RETAIN
             description: 'Data source for KB created through Blueprints',
             vectorIngestionConfiguration: {
                 chunkingConfiguration: {

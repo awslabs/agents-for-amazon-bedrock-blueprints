@@ -12,8 +12,8 @@ const logger = new Logger({
 const CLIENT_TIMEOUT_MS = 1000;
 const CLIENT_MAX_RETRIES = 5;
 const CREATE_INDEX_RETRY_CONFIG = {
-    delay: 5000,
-    maxTry: 15,
+    delay: 30000, // 30 sec
+    maxTry: 20,   // Should wait at least 10 mins for the permissions to propagate
 };
 
 // TODO: make an embedding to config map to support more models

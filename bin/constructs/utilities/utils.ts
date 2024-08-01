@@ -50,6 +50,6 @@ export function writeFilesToDir(dirPath: string, files: FileBufferMap) {
  */
 export function generateNamesForAOSS(resourceName: string, suffix: string) {
     const MAX_ALLOWED_NAME_LENGTH = 32;
-    const maxResourceNameLength = MAX_ALLOWED_NAME_LENGTH - suffix.length;
-    return `${resourceName.slice(0, maxResourceNameLength)}-${suffix}`.toLowerCase();
+    const maxResourceNameLength = MAX_ALLOWED_NAME_LENGTH - suffix.length - 1; // Subtracts an additional 1 to account for the hyphen between resourceName and suffix.
+    return `${resourceName.slice(0, maxResourceNameLength)}-${suffix}`.toLowerCase().replace(/[^a-z0-9-]/g, '');  // Replaces any characters that do not match [a-z0-9-] with an empty string.
 }
