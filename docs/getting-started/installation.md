@@ -21,7 +21,7 @@ If you prefer to install the Agent Blueprints package manually, follow these ste
 2. Install the `BedrockAgentBlueprintsConstruct` package:
 
 ```
-npm install @aws/agents-for-amazaon-bedrock-blueprints
+npm install @aws/agents-for-amazon-bedrock-blueprints
 ```
 
 <h3>How to use Agent Blueprint?</h3>
