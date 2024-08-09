@@ -20,7 +20,7 @@ For complete project documentation, please see our [official project documentati
 
 ## Examples
 
-To view a library of templates leveraging the `agents-for-amazaon-bedrock-blueprints` and a library of prompts, please see our [Bedrock Samples Repository](https://github.com/aws-samples/amazon-bedrock-samples/tree/main/agents-for-bedrock/agent-blueprint-templates).
+To view a library of templates leveraging the `agents-for-amazon-bedrock-blueprints` and a library of prompts, please see our [Bedrock Samples Repository](https://github.com/aws-samples/amazon-bedrock-samples/tree/main/agents-for-bedrock/agent-blueprint-templates).
 
 ## Key Components
 
@@ -36,9 +36,9 @@ The `BedrockAgentBlueprintsConstruct` is composed of the following key co
 
 ## Usage
 
-Run the following command to install the `agents-for-amazaon-bedrock-blueprints` dependency in your project.
+Run the following command to install the `agents-for-amazon-bedrock-blueprints` dependency in your project.
 ```
-npm i @aws/agents-for-amazaon-bedrock-blueprints
+npm i @aws/agents-for-amazon-bedrock-blueprints
 ```
 
 Here's an example of how to use the `BedrockAgentBlueprintsConstruct`:
