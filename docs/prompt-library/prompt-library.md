@@ -6,12 +6,62 @@ Users can view and utilize the full prompts by visiting the GitHub repository or
 
 To access the prompts:
 
-1. Visit the GitHub repository: <a href="https://github.com/aws-samples/amazon-bedrock-samples/tree/main/agents-for-bedrock/agent-blueprint-templates/lib/prompt_library" target="_blank">Link to GitHub repository</a>
+1. Visit the GitHub repository: [Link to GitHub repository](https://github.com/aws-samples/amazon-bedrock-samples/tree/main/agents-for-bedrock/agent-blueprint-templates/lib/prompt_library){:target="_blank"}
 2. Navigate to the prompt that you are interested in.
 3. Copy the desired prompt or clone the repository to your local machine.
 
 <h3>Prompt Summaries</h3>
 Feel free to explore and utilize these prompts in your projects or modify them according to your requirements.
+
+<details>
+<summary>Example Code Snippet Using a Prompt</summary>
+
+```ts
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { AgentDefinitionBuilder, PromptType } from '../../agents-for-amazon-bedrock-blueprints/lib/constructs/AgentDefinitionBuilder';
+import { BedrockAgentBlueprintsConstruct } from '../../agents-for-amazon-bedrock-blueprints/lib/constructs/BedrockAgentBlueprintsConstruct';
+import * as bedrock from 'aws-cdk-lib/aws-bedrock';
+
+import {
+    claude3SonnetPromptInjectionOrchestrationPrompt
+} from '../../amazon-bedrock-samples/agents-for-bedrock/agent-blueprint-templates/lib/prompt_library/prompt-injection-mitigation-prompts'
+
+
+export class MyCdkAppStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+    const prompt: bedrock.CfnAgent.PromptConfigurationProperty = {
+      promptType: PromptType.ORCHESTRATION,
+      promptCreationMode: "OVERRIDDEN",
+      inferenceConfiguration: {
+        maximumLength: 2048,
+        stopSequences: ["\n\nHuman:"],
+        temperature: 0,
+        topK: 250,
+        topP: 1,
+      },
+      basePromptTemplate: claude3SonnetPromptInjectionOrchestrationPrompt,
+    };
+
+    const agentDef = new AgentDefinitionBuilder(this, 'NewAgentDef', {})
+        .withAgentName('NewFriendlyAgent')
+        .withInstruction('nice new fun agent to do great things in code')
+        .withUserInput()
+        .withOrchestrationPrompt(prompt)
+        .withFoundationModel('anthropic.claude-3-sonnet-20240229-v1:0')
+        .build();
+
+
+    new BedrockAgentBlueprintsConstruct(this, 'AmazonBedrockAgentBlueprintsStack', {
+      agentDefinition: agentDef,
+    });
+  }
+}
+```
+
+</details>
 
 <h4> prompts.ts </h4>
 
@@ -29,7 +79,7 @@ This prompt is used to provide additional context to the agent's response, makin
 
 <h4> prompt-injection-mitigation-prompts.ts </h4>
 
-These prompts add additional instructions that can help mitigate prompt injection attacks. For more information, see: <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-injection.html" target="_blank">Prompt injection security</a>
+These prompts add additional instructions that can help mitigate prompt injection attacks. For more information, see: [Prompt injection security](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-injection.html){:target="_blank"}
 
 1. <h4>claude3SonnetPromptInjectionOrchestrationPrompt</h4>
 This prompt is for mitigating prompt injection attacks on the Claude 3 Sonnet model.
