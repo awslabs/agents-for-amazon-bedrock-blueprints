@@ -1,6 +1,6 @@
 import { aws_bedrock as bedrock } from 'aws-cdk-lib';
 import { Construct } from "constructs";
-import { USER_INPUT_ACTION_NAME, USER_INPUT_PARENT_SIGNATURE } from '../utilities/constants';
+import { USER_INPUT_ACTION_NAME, USER_INPUT_PARENT_SIGNATURE, CODE_INTERPRETER_ACTION_NAME, CODE_INTERPRETER_PARENT_SIGNATURE } from '../utilities/constants';
 
 export interface TagsConfig {
     [key: string]: string;
@@ -205,6 +205,35 @@ export class AgentDefinitionBuilder extends Construct {
         this.agentDefinition = {
             ...this.agentDefinition,
             actionGroups: [userInputAction]
+        };
+        return this;
+    }
+
+    /**
+     * To allow agent to generate, run, and troubleshoot your application code in a secure test environment.
+     * We need to add an action group with the parentActionGroupSignature 
+     * field set to AMAZON.CodeInterpreter.
+     * @returns AgentDefinitionBuilder object with a new action set.
+     */
+    public withCodeInterpreter() {
+        const codeInterpreterAction: bedrock.CfnAgent.AgentActionGroupProperty = {
+            actionGroupName: CODE_INTERPRETER_ACTION_NAME,
+            actionGroupState: "ENABLED",
+            parentActionGroupSignature: CODE_INTERPRETER_PARENT_SIGNATURE,
+        };
+
+        // Append the codeInterpreter AG to the agent definition.
+        this.agentDefinition = {
+            ...this.agentDefinition,
+            actionGroups: [codeInterpreterAction]
+        };
+        return this;
+    }
+
+    public enableAutoPrepare() {
+        this.agentDefinition = {
+            ...this.agentDefinition,
+            autoPrepare: true
         };
         return this;
     }
