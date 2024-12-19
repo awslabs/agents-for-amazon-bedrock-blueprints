@@ -220,12 +220,18 @@ export class AgentDefinitionBuilder extends Construct {
             actionGroupName: CODE_INTERPRETER_ACTION_NAME,
             actionGroupState: "ENABLED",
             parentActionGroupSignature: CODE_INTERPRETER_PARENT_SIGNATURE,
+            skipResourceInUseCheckOnDelete: true,
         };
 
-        // Append the codeInterpreter AG to the agent definition.
+        const existingActions = <[]>this.agentDefinition?.actionGroups || [];
+
+        // Append the agentActionGroups to the agent definition.
         this.agentDefinition = {
             ...this.agentDefinition,
-            actionGroups: [codeInterpreterAction]
+            actionGroups: [
+                ...existingActions,
+                ...codeInterpreterAction
+            ],
         };
         return this;
     }
