@@ -230,7 +230,7 @@ export class AgentDefinitionBuilder extends Construct {
             ...this.agentDefinition,
             actionGroups: [
                 ...existingActions,
-                ...codeInterpreterAction
+                codeInterpreterAction
             ],
         };
         return this;
