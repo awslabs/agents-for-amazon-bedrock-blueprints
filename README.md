@@ -27,9 +27,7 @@ To view a library of templates leveraging the `agents-for-amazon-bedrock-bluepri
 The `BedrockAgentBlueprintsConstruct` is composed of the following key components:
 
 1. **Agent Definition**: An `AgentDefinitionBuilder` is used to define the agent's properties like name, instruction, foundationModel etc. This also allows users to build the agent with different prompts from the library.
-    
-2. **Action** **Groups**: An `AgentActionGroup` is a placeholder construct used to define the actions that the agent can perform, and helps in setup of associated Lambda function code and OpenAPI schema. 
-    
+2. **Action** **Groups**: An `AgentActionGroup` is a placeholder construct used to define the actions that the agent can perform, and helps in setup of associated Lambda function code and OpenAPI schema.
 3. **Knowledge** **Bases**: An `AgentKnowledgeBase` is used to define the knowledge base for the agent, which can include various asset files for the data source. Currently this supports automated creation of an AOSS cluster, deploys the assets to an assets bucket, builds a data source, builds a KB and syncs the data source.
 
 4. **Guardrails**: The `BedrockGuardrailsBuilder` simplifies the creation of Amazon Bedrock Guardrails. Guardrails are a set of rules and policies that help ensure the safety and compliance of your AI applications.
@@ -37,6 +35,7 @@ The `BedrockAgentBlueprintsConstruct` is composed of the following key co
 ## Usage
 
 Run the following command to install the `agents-for-amazon-bedrock-blueprints` dependency in your project.
+
 ```
 npm i @aws/agents-for-amazon-bedrock-blueprints
 ```
@@ -106,8 +105,7 @@ In this example, we:
 2. Define an action group with an inline Lambda function and OpenAPI schema.
 3. Define a knowledge base with a CSV file.
 4. Define a guardrail that blocks anything related to arts and crafts.
-4. Create the `BedrockAgentBlueprintsConstruct` and pass in the agent definition, action groups, guardrail and knowledge bases.
-    
+5. Create the `BedrockAgentBlueprintsConstruct` and pass in the agent definition, action groups, guardrail and knowledge bases.
 
 When you deploy this CDK stack, it will create the necessary AWS resources to deploy the Bedrock agent with the specified configuration.
 
@@ -117,6 +115,7 @@ When you deploy this CDK stack, it will create the necessary AWS res
 Users can choose to opt-out of creating KB resources as it may become expensive to deploy the AOSS clusters for KB. If any templates initializes KB, you can skip KB creation by adding a flag skipKBCreation in the CDK context.
 
 Example:
+
 ```
 cdk synth <STACK_NAME> --context skipKBCreation=true
 ```
@@ -124,33 +123,34 @@ cdk synth <STACK_NAME> --context skipKBCreation=true
 ## Deployment
 
 To deploy the `BedrockAgentBlueprintsConstruct`, you can use the standard CDK deployment process:
+
 1. Create an application that deploys the stack
-    ```
-    const app = new cdk.App();
-    const permissionObject = {
-        env: { account: 'XXXXXXXXXX', region: 'us-east-1' },
-    };
-    new DemoTemplateStack(app, 'AmazonBedrockAgentBlueprintsStack', permissionObject);
-    ```
+   ```
+   const app = new cdk.App();
+   const permissionObject = {
+       env: { account: 'XXXXXXXXXX', region: 'us-east-1' },
+   };
+   new DemoTemplateStack(app, 'AmazonBedrockAgentBlueprintsStack', permissionObject);
+   ```
 2. Synthesize the CloudFormation template: 
-    
-    ```
-    cdk synth AmazonBedrockAgentBlueprintsStack
-    ```
+
+   ```
+   cdk synth AmazonBedrockAgentBlueprintsStack
+   ```
+
 3. Bootstrap your account if not already: 
-    
-    ```
-    cdk bootstrap aws://<AWS_ACCOUNT_ID>/<AWS_REGION>
-    ```
+
+   ```
+   cdk bootstrap aws://<AWS_ACCOUNT_ID>/<AWS_REGION>
+   ```
+
 4. Deploy the stack: 
-    
-    ```
-    cdk deploy AmazonBedrockAgentBlueprintsStack
-    ```
-    
+
+   ```
+   cdk deploy AmazonBedrockAgentBlueprintsStack
+   ```
 
 This will create the necessary AWS resources, including the Bedrock agent, and deploy the agent to your AWS environment.
-
 
 ## Contributing
 
@@ -162,4 +162,5 @@ For additional details, learning recommendations, step-by-step instructions, and
 To post feedback, submit feature ideas, or report bugs, use the [Issues section of this GitHub repo](https://github.com/awslabs/agents-for-amazon-bedrock-blueprints/issues/new/choose).
 
 ## License
+
 This library is licensed under the "MIT-0" License.

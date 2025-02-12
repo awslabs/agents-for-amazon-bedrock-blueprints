@@ -27,7 +27,7 @@ jobs:
         run: |
           git-secrets --register-aws
           git-secrets --scan
-  
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -41,6 +41,8 @@ jobs:
         run: npm ci
       - name: Check linting
         run: npm run lint
+      - name: Check formatting
+        run: npm run format
       - name: Build
         run: |
           npm install

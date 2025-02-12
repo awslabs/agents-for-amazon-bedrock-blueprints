@@ -3,7 +3,7 @@ copyright: Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 repo_name: "Github: AgentBlueprints"
 repo_url: "https://github.com/awslabs/agents-for-amazon-bedrock-blueprints"
 theme:
-  icon: 
+  icon:
     repo: fontawesome/brands/git-alt
   name: material
   features:
@@ -15,11 +15,11 @@ theme:
   palette:
     - scheme: default
       toggle:
-        icon: material/weather-sunny 
+        icon: material/weather-sunny
         name: "Switch to dark mode"
       primary: white
-      accent: purple 
-    - scheme: slate 
+      accent: purple
+    - scheme: slate
       toggle:
         icon: material/weather-night
         name: "Switch to light mode"
@@ -47,27 +47,27 @@ markdown_extensions:
       permalink: true
 
 nav:
-  - Overview: 'index.md'
-  - What is Agents for Amazon Bedrock: './about/about-agents.md'
+  - Overview: "index.md"
+  - What is Agents for Amazon Bedrock: "./about/about-agents.md"
   - Getting Started:
-    - '[Optional] Learn about AWS CDK': './getting-started/learn-cdk.md'
-    - 'Prerequisites': './getting-started/prerequisite.md'
-    - 'Installation': './getting-started/installation.md'
-  - Using Construct to Build Agents: 
-    - 'Get Started with Constructs': './using-constructs/getting-started-with-constructs.md'
-    - 'Example Template Using Constructs': './using-constructs/usage.md'
-    - 'Customization Options': './using-constructs/features.md'
-    - 'Helper Constructs': './using-constructs/helper-constructs.md'
-    - 'Test and Deploy Constructs': './using-constructs/test-deploy.md'
+      - "[Optional] Learn about AWS CDK": "./getting-started/learn-cdk.md"
+      - "Prerequisites": "./getting-started/prerequisite.md"
+      - "Installation": "./getting-started/installation.md"
+  - Using Construct to Build Agents:
+      - "Get Started with Constructs": "./using-constructs/getting-started-with-constructs.md"
+      - "Example Template Using Constructs": "./using-constructs/usage.md"
+      - "Customization Options": "./using-constructs/features.md"
+      - "Helper Constructs": "./using-constructs/helper-constructs.md"
+      - "Test and Deploy Constructs": "./using-constructs/test-deploy.md"
   - Using Templates to Build Agents:
-    - 'Get Started with Templates': './using-templates/getting-started-with-templates.md'
-    - 'Agent blueprint for function definition': './using-templates/ag-function-definition.md'
-    - 'Agent blueprint for return of control': './using-templates/ag-roc.md'
-    - 'Agent blueprints for RAG, custom Action group, and guardrails': './using-templates/ag-kb-guardrails.md'
-    - 'Agent blueprints for advance prompts and lambda parser': './using-templates/ag-advance-prompts-parser.md'
-    - 'Agent blueprint for classification': './using-templates/ag-classification.md'
-    - 'Prompt Library': './prompt-library/prompt-library.md'
-  - Support: './support/support.md'
+      - "Get Started with Templates": "./using-templates/getting-started-with-templates.md"
+      - "Agent blueprint for function definition": "./using-templates/ag-function-definition.md"
+      - "Agent blueprint for return of control": "./using-templates/ag-roc.md"
+      - "Agent blueprints for RAG, custom Action group, and guardrails": "./using-templates/ag-kb-guardrails.md"
+      - "Agent blueprints for advance prompts and lambda parser": "./using-templates/ag-advance-prompts-parser.md"
+      - "Agent blueprint for classification": "./using-templates/ag-classification.md"
+      - "Prompt Library": "./prompt-library/prompt-library.md"
+  - Support: "./support/support.md"
 
 plugins:
   - search

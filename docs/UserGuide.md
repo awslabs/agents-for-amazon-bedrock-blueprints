@@ -5,14 +5,14 @@ The `BedrockAgentBlueprintsConstruct` is a high-level construct that simpl
 ## Prerequisites
 
 Before you can use the `BedrockAgentBlueprintsConstruct`, ensure that you have the following:
+
 - An AWS account with the necessary permissions to create and manage Bedrock resources.
 - The AWS CDK installed and configured on your local machine.
 - Node.js and npm installed.
-    
 
 ## Installation
 
-1. Create a new CDK project or navigate to an existing one.    
+1. Create a new CDK project or navigate to an existing one.
 2. Install the `BedrockAgentBlueprintsConstruct` package:
 
 ```
@@ -57,7 +57,6 @@ new BedrockAgentBlueprintsConstruct(stack, 'MyAgentBlueprint', {
 });
 ```
 
-
 In this example, we first define the agent properties using the `AgentDefinitionBuilder`. Then, we create an action group with a Lambda function and API schema definition. Finally, we instantiate the `BedrockAgentBlueprintsConstruct` and pass in the agent definition and action group.
 You can further customize the agent by adding knowledge bases, guardrails, and other configurations.
 
@@ -70,19 +69,22 @@ The `BedrockAgentBlueprintsConstruct` provides several customization options
 Users can choose to opt-out of creating KB resources as it can become expensive to deploy the AOSS clusters for KB. If any template initializes KB, you can skip KB creation by adding a flag skipKBCreation in the CDK context.
 
 Example:
+
 ```
 cdk synth <STACK_NAME> --context skipKBCreation=true
 ```
 
 ### IAM Role Management
-The `BedrockAgentBlueprintsConstruct' will automatically create and manage an IAM role for your Bedrock agent if you don't provide one. If you don't specify an `agentResourceRoleArn` in the `AgentDefinitionBuilder`, the construct will create a new IAM role with the necessary permissions for your agent. It will add required permissions for the ActionGroup invocation, FoundationModel access, KB access etc.
+
+The `BedrockAgentBlueprintsConstruct' will automatically create and manage an IAM role for your Bedrock agent if you don't provide one. If you don't specify an `agentResourceRoleArn`in the`AgentDefinitionBuilder`, the construct will create a new IAM role with the necessary permissions for your agent. It will add required permissions for the ActionGroup invocation, FoundationModel access, KB access etc.
 
 However, if you prefer to use an existing IAM role, you can provide the ARN of that role using the `withAgentResourceRoleArn()` method in the `AgentDefinitionBuilder`.
 
 This also adds a resource policy to the Lambda functions associated with the provided action groups. The permission allows the 'bedrock.amazonaws.com' service principal to invoke the Lambda function, using the agent's ARN as the source ARN. This ensures that the Bedrock service can invoke the Lambda functions associated with the agent's action groups
 
 ### Asset bucket management
-The `BedrockAgentBlueprintsConstruct` automatically creates and manages Amazon S3 buckets for storing the contents of your knowledge bases and action groups. When you define a knowledge base using the `AgentKnowledgeBase`construct and add files from local store and/or when you use a file for defining schema for an action group using the `AgentActionGroup` construct the `BedrockAgentBlueprintsConstruct` creates an S3 bucket and uploads the specified asset files to it under separate folders. This feature simplifies the management of your agent's assets and ensures that they are securely stored and easily accessible by the corresponding AWS services. 
+
+The `BedrockAgentBlueprintsConstruct` automatically creates and manages Amazon S3 buckets for storing the contents of your knowledge bases and action groups. When you define a knowledge base using the `AgentKnowledgeBase`construct and add files from local store and/or when you use a file for defining schema for an action group using the `AgentActionGroup` construct the `BedrockAgentBlueprintsConstruct` creates an S3 bucket and uploads the specified asset files to it under separate folders. This feature simplifies the management of your agent's assets and ensures that they are securely stored and easily accessible by the corresponding AWS services.
 
 ## Helper constructs
 
@@ -91,7 +93,9 @@ The `BedrockAgentBlueprintsConstruct` automatically creates and manages Amazon S
 The `AgentDefinitionBuilder`is a utility construct that simplifies the process of creating and configuring Amazon Bedrock agent definitions. It follows the builder pattern and uses composition to generate the `CfnAgentProps` required for creating a Bedrock agent.
 
 #### Generating CfnAgentProps
+
 The primary purpose of the `AgentDefinitionBuilder` is to generate the `CfnAgentProps` object, which is required for creating a Bedrock agent using the CfnAgent CDK construct. The builder provides a fluent interface for setting various properties of the agent definition, such as the agent name, instruction, foundation model, etc. Example:
+
 ```
 const agentDef = new AgentDefinitionBuilder(stack, 'NewAgentDef', {})
   .withAgentName('MyAgent')
@@ -102,6 +106,7 @@ const agentDef = new AgentDefinitionBuilder(stack, 'NewAgentDef', {})
 ```
 
 #### Prompt Configuration
+
 The `AgentDefinitionBuilder` simplifies the creation and configuration of prompts for your Bedrock agent. It provides methods for adding different types of prompts from the prompt library, such as pre-processing, post-processing, and response generation prompts.
 
 ```
@@ -113,10 +118,13 @@ const prompt: bedrock.CfnAgent.PromptConfigurationProperty = {
 
 builder.withPreprocessingPrompt(prompt);
 ```
+
 The builder also includes validations to ensure that prompt configurations are valid and consistent. For example, it checks if the required fields are provided and prevents redefining the same prompt type.
 
 #### User Input Action
+
 Creating a user input action group is not straightforward when using the AWS CLI or SDK. The `AgentDefinitionBuilder` simplifies this process by providing the `withUserInput()` method, which automatically creates and configures the necessary resources for a user input action group.
+
 ```
 const builder = new AgentDefinitionBuilder(stack, 'NewAgentDef', {});
 builder.withAgentName('MyAgent');
@@ -131,24 +139,25 @@ The `AgentActionGroup` construct is a lightweight utility that allows you to def
 
 #### Properties
 
-* actionGroupName(required): The name of the action group.
-* description(optional): A description of the action group.
-* actionGroupExecutor(required): An object that defines the Lambda function responsible for executing the action group. This allows you to customize the Lambda function that will execute the action group. You can specify the following properties:
-  * lambdaDefinition: An object that defines the Lambda function code, handler, and runtime.
-    * lambdaCode: The code for the Lambda function (e.g., an inline code buffer or a reference to a file).
-    * lambdaHandler: The handler function for the Lambda function.
-    * lambdaRuntime: The runtime environment for the Lambda function (e.g., nodejs18.x).
-  * lambdaExecutor: Custom lambda function object that can directly be associated with an action.
-  * customControl: Constant string that will be returned to the user as a fixed response.
-  * NOTE: if all multiple params are defined lambdaExecutor will take precedence followed by lambdaDefinition then customControl.
-* schemaDefinition(required): An object that allows you to define the API/Function schema for the action group. You can specify the schema in one of the following ways:
-  * inlineAPISchema: An inline API schema definition as a string.
-  * apiSchemaFile: A file buffer containing the API schema definition. The BedrockAgentBlueprintsConstruct will make a deployment to S3 and construct the URI params to link to the action.
-  * functionSchema: Defines functions that each define parameters that the agent needs to invoke from the user.
-* actionGroupState(optional): The state of the action group (ENABLED or DISABLED).
-* parentActionGroupSignature(optional): Used to define reserved actions.
+- actionGroupName(required): The name of the action group.
+- description(optional): A description of the action group.
+- actionGroupExecutor(required): An object that defines the Lambda function responsible for executing the action group. This allows you to customize the Lambda function that will execute the action group. You can specify the following properties:
+  - lambdaDefinition: An object that defines the Lambda function code, handler, and runtime.
+    - lambdaCode: The code for the Lambda function (e.g., an inline code buffer or a reference to a file).
+    - lambdaHandler: The handler function for the Lambda function.
+    - lambdaRuntime: The runtime environment for the Lambda function (e.g., nodejs18.x).
+  - lambdaExecutor: Custom lambda function object that can directly be associated with an action.
+  - customControl: Constant string that will be returned to the user as a fixed response.
+  - NOTE: if all multiple params are defined lambdaExecutor will take precedence followed by lambdaDefinition then customControl.
+- schemaDefinition(required): An object that allows you to define the API/Function schema for the action group. You can specify the schema in one of the following ways:
+  - inlineAPISchema: An inline API schema definition as a string.
+  - apiSchemaFile: A file buffer containing the API schema definition. The BedrockAgentBlueprintsConstruct will make a deployment to S3 and construct the URI params to link to the action.
+  - functionSchema: Defines functions that each define parameters that the agent needs to invoke from the user.
+- actionGroupState(optional): The state of the action group (ENABLED or DISABLED).
+- parentActionGroupSignature(optional): Used to define reserved actions.
 
 #### Example:
+
 ```
 const inlineCode = Buffer.from(
     `
@@ -244,14 +253,13 @@ const kb = new AgentKnowledgeBase(stack, 'TestKB', kbProps);
 ```
 
 ### IAM Role Management
-`AgentKnowledgeBase` will create a service role to allow agent to access the KB and allow the KB to access the asset files in S3, permissions for accessing the AOSS collection, and indices and permissions for accessing the embedding models.
 
+`AgentKnowledgeBase` will create a service role to allow agent to access the KB and allow the KB to access the asset files in S3, permissions for accessing the AOSS collection, and indices and permissions for accessing the embedding models.
 
 #### Creating and Synchronizing Data Sources
 
 The `AgentKnowledgeBase` construct provides a method `createAndSyncDataSource` to create and synchronize data sources with the knowledge base. Data sources can be Amazon S3 buckets or folders containing the information you want to include in the Knowledge Base.
 When we attach a knowledge base to the `BedrockAgentBlueprintsConstruct` it calls the `createAndSyncDataSource` to populate the knowledge base with the data in asset management bucket.
-
 
 #### OpenSearchServerlessHelper
 
@@ -275,7 +283,7 @@ const helper = new OpenSearchServerlessHelper(stack, 'TestHelper', {
 
 ### Guardrails
 
-The `BedrockGuardrailsBuilder` construct is a utility class that simplifies the creation of Amazon Bedrock Guardrails. Guardrails are a set of rules and policies that help ensure the safety and compliance of your AI applications. The 
+The `BedrockGuardrailsBuilder` construct is a utility class that simplifies the creation of Amazon Bedrock Guardrails. Guardrails are a set of rules and policies that help ensure the safety and compliance of your AI applications. The
 `BedrockGuardrailsBuilder` allows you to configure various aspects of a Guardrail, such as content filtering, sensitive information handling, topic management, and word policies.
 After you've built the Guardrail using the `BedrockGuardrailsBuilder` you can associate it with an Amazon Bedrock Agent Blueprint using the `BedrockAgentBlueprintsConstruct`
 
@@ -305,7 +313,6 @@ const guardrailBuilder = new BedrockGuardrailsBuilder(stack, 'TestGuardrail', {
 const guardrail = guardrailBuilder.build();
 ```
 
-
 #### Generating a KMS Key
 
 If you want the `BedrockGuardrailsBuilder` to generate a new KMS key for you, you can set the `generateKmsKey` to `true`. Or you can provide your own key with `kmsKeyArn`
@@ -317,7 +324,6 @@ const guardrailBuilder = new BedrockGuardrailsBuilder(stack, 'TestGuardrail', {
 });
 const guardrail = guardrailBuilder.build();
 ```
-
 
 #### Configuring Content Policies
 
@@ -340,7 +346,6 @@ const guardrail = guardrailBuilder.build();
 ```
 
 This example demonstrates how to configure filters for violence and sexual content, handle sensitive information like emails and names, manage topics related to politics, and block or allow specific words or profanity.
-
 
 ## Testing
 
