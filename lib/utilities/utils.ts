@@ -1,7 +1,6 @@
-import { writeFileSync } from 'fs';
-import { resolve } from 'path';
-import { v4 as uuidv4 } from 'uuid';
-
+import { writeFileSync } from "fs";
+import { resolve } from "path";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * Interface to store the combination of filenames and their contents.
@@ -16,14 +15,14 @@ import { v4 as uuidv4 } from 'uuid';
 };
  */
 export interface FileBufferMap {
-    [filename: string]: Buffer;
+  [filename: string]: Buffer;
 }
 
 export function generateFileBufferMap(files: Buffer[]) {
-    let tempBufferMap: FileBufferMap = {};
-    files.forEach(file => tempBufferMap[uuidv4()] = file);
+  let tempBufferMap: FileBufferMap = {};
+  files.forEach((file) => (tempBufferMap[uuidv4()] = file));
 
-    return tempBufferMap;
+  return tempBufferMap;
 }
 
 /**
@@ -34,22 +33,22 @@ export function generateFileBufferMap(files: Buffer[]) {
  * @param files - A map of file names to file buffers, representing the files to be written.
  */
 export function writeFilesToDir(dirPath: string, files: FileBufferMap) {
-    for (const [fileName, fileBuffer] of Object.entries(files)) {
-        const filePath = resolve(dirPath, fileName);
-        writeFileSync(filePath, fileBuffer);
-    }
+  for (const [fileName, fileBuffer] of Object.entries(files)) {
+    const filePath = resolve(dirPath, fileName);
+    writeFileSync(filePath, fileBuffer);
+  }
 }
 
 /**
  * Collection and property names follow regex: ^[a-z][a-z0-9-]{2,31}$. We will
  * use the first 32-suffixLength characters of the Kb to generate the name.
- * 
+ *
  * @param resourceName Name of the kb/collection. This will be trimmed to fit suffix.
  * @param suffix Suffix to append to the kbName.
  * @returns string that conforms to AOSS validations (timmedName-prefix)
  */
 export function generateNamesForAOSS(resourceName: string, suffix: string) {
-    const MAX_ALLOWED_NAME_LENGTH = 32;
-    const maxResourceNameLength = MAX_ALLOWED_NAME_LENGTH - suffix.length - 1; // Subtracts an additional 1 to account for the hyphen between resourceName and suffix.
-    return `${resourceName.slice(0, maxResourceNameLength)}-${suffix}`.toLowerCase().replace(/[^a-z0-9-]/g, '');  // Replaces any characters that do not match [a-z0-9-] with an empty string.
+  const MAX_ALLOWED_NAME_LENGTH = 32;
+  const maxResourceNameLength = MAX_ALLOWED_NAME_LENGTH - suffix.length - 1; // Subtracts an additional 1 to account for the hyphen between resourceName and suffix.
+  return `${resourceName.slice(0, maxResourceNameLength)}-${suffix}`.toLowerCase().replace(/[^a-z0-9-]/g, ""); // Replaces any characters that do not match [a-z0-9-] with an empty string.
 }

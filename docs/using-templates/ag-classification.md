@@ -7,8 +7,9 @@ This Agent Blueprint demonstrates how to create a simple email classification Ag
 To deploy this Agent Blueprint:
 
 1. Ensure you have the AWS CDK installed and configured.
-2. Clone the [repository](https://github.com/aws-samples/amazon-bedrock-samples){:target="_blank"} containing these stacks and the BedrockAgentBlueprintsConstruct.
+2. Clone the [repository](https://github.com/aws-samples/amazon-bedrock-samples){:target="\_blank"} containing these stacks and the BedrockAgentBlueprintsConstruct.
 3. Run the below code:
+
 ```deploy_stack.ts
 cdk deploy AgentWithSimpleClassificationStack
 ```
@@ -69,4 +70,4 @@ This custom construct simplifies the process of creating agents for Amazon Bedro
 - Uses AWS CDK for infrastructure as code
 - Employs a reusable construct (BedrockAgentBlueprintsConstruct) for simplified agent creation
 
-For more detailed information on Agents for Amazon Bedrock and the BedrockAgentBlueprintsConstruct, please refer to the provided documentation and the [official AWS Bedrock documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html){:target="_blank"}.
+For more detailed information on Agents for Amazon Bedrock and the BedrockAgentBlueprintsConstruct, please refer to the provided documentation and the [official AWS Bedrock documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html){:target="\_blank"}.

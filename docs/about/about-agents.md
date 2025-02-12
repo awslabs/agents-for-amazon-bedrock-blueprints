@@ -1,4 +1,5 @@
 # Agent for Amazon Bedrock
+
 Agents for Amazon Bedrock offers you the ability to build and configure autonomous agents in your application. An agent helps your end-users complete actions based on organization data and user input. Agents orchestrate interactions between foundation models (FMs), data sources, software applications, and user conversations. In addition, agents automatically call APIs to take actions and invoke knowledge bases to supplement information for these actions. Developers can save weeks of development effort by integrating agents to accelerate the delivery of generative artificial intelligence (generative AI) applications.
 
 <h3>What can you do with Agents for Amazon bedrock?</h3>
@@ -11,4 +12,4 @@ Agents perform the following tasks:
 - Take actions to fulfill a customer's request by making API calls to your company systems.
 - Augment performance and accuracy by querying data sources.
 
-To learn more about Agents for Amazon Bedrock, visit our [full documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html){:target="_blank"}.
+To learn more about Agents for Amazon Bedrock, visit our [full documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html){:target="\_blank"}.

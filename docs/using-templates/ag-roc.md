@@ -7,8 +7,9 @@ This Agent Blueprint demonstrates how to create an HR Assistant Agent using Amaz
 To deploy this Agent Blueprint:
 
 1. Ensure you have the AWS CDK installed and configured.
-2. Clone the [repository](https://github.com/aws-samples/amazon-bedrock-samples){:target="_blank"} containing these stacks and the BedrockAgentBlueprintsConstruct.
+2. Clone the [repository](https://github.com/aws-samples/amazon-bedrock-samples){:target="\_blank"} containing these stacks and the BedrockAgentBlueprintsConstruct.
 3. Run the below code:
+
 ```deploy_stack.ts
 cdk deploy AgentWithROCStack
 ```
@@ -29,7 +30,7 @@ In our HR Assistant Agent, we define functions like `reserve_vacation_time` with
 
 The agent will guide the conversation to collect these parameters from the user. Instead of directly executing the action, the agent will return the collected information to the developer, who can then perform additional processing or validation before confirming the vacation reservation.
 
-For more details on this feature, refer to the [Amazon Bedrock documentation on action group executors](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-action-group-executor.html){:target="_blank"}.
+For more details on this feature, refer to the [Amazon Bedrock documentation on action group executors](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-action-group-executor.html){:target="\_blank"}.
 
 <h2>Overview</h2>
 
@@ -83,4 +84,4 @@ This custom construct simplifies the process of creating agents for Amazon Bedro
 - Employs a reusable construct (BedrockAgentBlueprintsConstruct) for simplified agent creation
 - Separates the agent logic from the application logic, allowing for more flexibility and extensibility
 
-For more detailed information on Agents for Amazon Bedrock, the "Return of Control" feature, please refer to the provided documentation and the [official AWS Bedrock documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html){:target="_blank"}.
+For more detailed information on Agents for Amazon Bedrock, the "Return of Control" feature, please refer to the provided documentation and the [official AWS Bedrock documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html){:target="\_blank"}.

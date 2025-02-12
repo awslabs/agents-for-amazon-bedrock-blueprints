@@ -4,10 +4,10 @@ To deploy an agent from a template using the shell script helper, follow these s
 
 ```title="Find and deploy agent templates using shell script"
 # List available templates
-./blueprints.sh ls 
+./blueprints.sh ls
 
 # Deploy a template
-./blueprints.sh deploy <name-of-the-example-stack> 
+./blueprints.sh deploy <name-of-the-example-stack>
 
 # Example deployment
 ./blueprints.sh deploy 01-agent-with-function-definitions
@@ -17,7 +17,7 @@ To deploy an agent from a template using the shell script helper, follow these s
 
 If you prefer to install the Agent Blueprints package manually, follow these steps:
 
-1. Create a new CDK project or navigate to an existing one.    
+1. Create a new CDK project or navigate to an existing one.
 2. Install the `BedrockAgentBlueprintsConstruct` package:
 
 ```
@@ -26,7 +26,7 @@ npm install @aws/agents-for-amazon-bedrock-blueprints
 
 <h3>How to use Agent Blueprint?</h3>
 
-You can either directly deploy the preconfigured blueprint using CDK or you can optionally extend the blueprint based on your requirements. 
+You can either directly deploy the preconfigured blueprint using CDK or you can optionally extend the blueprint based on your requirements.
 
 **Using Templates**: These are pre-built agent templates that cover some of the most common use cases for Amazon Bedrock agents. These templates are ready to use, and can help create an agent in just a few minutes.
 
@@ -45,7 +45,7 @@ const stack = new cdk.Stack(app, 'MyStack');
 const travelAssistant =  buildTravelAssistantAgent();
 
 //If the users want to customize their agent further
-const hotelsInfo = new KnowledgeBase(...); 
+const hotelsInfo = new KnowledgeBase(...);
 travelAssistant.addKnowledgeBase(hotelsInfo) // Allows user to add their own resources
 
 //Add the resources to the stack deployment.

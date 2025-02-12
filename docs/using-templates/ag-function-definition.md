@@ -7,12 +7,12 @@ This Agent Blueprint demonstrates how to create an HR Assistant Agent using Amaz
 To deploy this Agent Blueprint:
 
 1. Ensure you have the AWS CDK installed and configured.
-2. Clone the [repository](https://github.com/aws-samples/amazon-bedrock-samples){:target="_blank"} containing these stacks and the BedrockAgentBlueprintsConstruct.
+2. Clone the [repository](https://github.com/aws-samples/amazon-bedrock-samples){:target="\_blank"} containing these stacks and the BedrockAgentBlueprintsConstruct.
 3. Run the below code:
+
 ```deploy_stack.ts
 cdk deploy AgentWithFunctionDefinitionStack
 ```
-
 
 This single command will automatically deploy both the HRAssistDataStack and the AgentWithFunctionDefinitionStack in the correct order, thanks to the dependency condition set up in your CDK code.
 
@@ -34,7 +34,7 @@ For example, in our HR Assistant Agent, we define functions like `reserve_vacati
 
 This ensures the agent collects all necessary information before processing a vacation request. If a user doesn't provide all required details upfront, the agent will ask follow-up questions to gather the missing information.
 
-For more details on this feature, refer to the [Amazon Bedrock documentation on defining function details for action groups](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-action-function.html){:target="_blank"}.
+For more details on this feature, refer to the [Amazon Bedrock documentation on defining function details for action groups](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-action-function.html){:target="\_blank"}.
 
 <h2>Overview</h2>
 
@@ -89,5 +89,4 @@ This custom construct simplifies the process of creating agents for Amazon Bedro
 - Utilizes AWS Lambda for serverless execution of database operations
 - Employs a reusable construct (BedrockAgentBlueprintsConstruct) for simplified agent creation
 
-
-For more detailed information on Agents for Amazon Bedrock function definitions, please refer to the provided documentation and the [official AWS Bedrock documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html){:target="_blank"}.
+For more detailed information on Agents for Amazon Bedrock function definitions, please refer to the provided documentation and the [official AWS Bedrock documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html){:target="\_blank"}.
