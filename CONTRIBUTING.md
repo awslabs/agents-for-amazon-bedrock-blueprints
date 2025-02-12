@@ -40,6 +40,7 @@ npm run clean
 npm run lint
 npm run build 
 npm run test
+npm run format
 
 # Deployment of basic stack
 cdk synth
