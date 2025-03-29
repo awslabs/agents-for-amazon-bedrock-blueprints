@@ -1,5 +1,7 @@
 export const USER_INPUT_ACTION_NAME = "UserInputAction";
 export const USER_INPUT_PARENT_SIGNATURE = "AMAZON.UserInput";
+export const CODE_INTERPRETER_ACTION_NAME = "CodeInterpreterAction";
+export const CODE_INTERPRETER_PARENT_SIGNATURE = "AMAZON.CodeInterpreter";
 
 export const AMAZON_BEDROCK_METADATA = 'AMAZON_BEDROCK_METADATA';
 export const AMAZON_BEDROCK_TEXT_CHUNK = 'AMAZON_BEDROCK_TEXT_CHUNK';
