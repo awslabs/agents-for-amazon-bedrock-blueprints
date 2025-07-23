@@ -39,4 +39,4 @@ This flow is ideal to create a custom agent template with specific options and c
 This flow is ideal to quickly create an agent for Amazon Bedrock based on some of the most common use cases. The pre-built templates are ready to use, and you can have an agent up and running in just a few minutes. These templates are ready to use and they provide a great starting point to deploy an agent quickly. To learn more about using templates to build Agents for Amazon Bedrock, click [here](./using-templates/getting-started-with-templates.md).
 
 **Example Templates**: 
-To view a library of blueprint examples, see our [Blueprints Patterns Repository](https://github.com/aws-samples/amazon-bedrock-samples/tree/main/agents-for-bedrock/agent-blueprint-templates){:target="_blank"}.
+To view a library of blueprint examples, see our [Blueprints Patterns Repository](https://github.com/aws-samples/amazon-bedrock-samples/tree/main/agents-and-function-calling/bedrock-agents/agent-blueprint-templates){:target="_blank"}.
